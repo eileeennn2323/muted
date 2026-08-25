@@ -10,7 +10,7 @@ export default function PersonLessons({ lessons }: { lessons: PersonLesson[] }) 
         <span className="text-cedar">
           <SeedlingIcon />
         </span>
-        <p className="text-[15px] text-cocoa">Things worth learning from them</p>
+        <p className="text-[15px] font-semibold text-cocoa">Things worth learning from them</p>
       </div>
       <ul className="mt-3 flex flex-col gap-2.5">
         {lessons.map((lesson) => (
