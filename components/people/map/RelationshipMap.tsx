@@ -42,7 +42,6 @@ function toFlowEdges(mapEdges: MapEdgeData[]): Edge[] {
     label: e.content ?? e.label,
     style: edgeStyle(e.edgeKind),
     labelStyle: { fill: "var(--color-cocoa-soft)", fontSize: 11 },
-    labelBgStyle: { fill: "var(--color-cream)" },
     data: {
       content: e.content,
       edgeKind: e.edgeKind,

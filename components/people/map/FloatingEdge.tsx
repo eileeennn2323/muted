@@ -70,7 +70,7 @@ function getEdgeParams(source: InternalNode<Node>, target: InternalNode<Node>) {
   };
 }
 
-export default function FloatingEdge({ id, source, target, style, label, labelStyle, labelBgStyle, markerEnd, data }: EdgeProps) {
+export default function FloatingEdge({ id, source, target, style, label, labelStyle, markerEnd, data }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -101,8 +101,6 @@ export default function FloatingEdge({ id, source, target, style, label, labelSt
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               pointerEvents: "all",
               maxWidth: 220,
-              padding: "3px 8px",
-              borderRadius: 6,
               fontSize: 11.5,
               lineHeight: 1.4,
               display: "-webkit-box",
@@ -111,10 +109,11 @@ export default function FloatingEdge({ id, source, target, style, label, labelSt
               overflow: "hidden",
               textOverflow: "ellipsis",
               cursor: onSelect ? "pointer" : undefined,
-              background: (labelBgStyle as { fill?: string } | undefined)?.fill ?? "var(--color-cream)",
               color: (labelStyle as { fill?: string } | undefined)?.fill ?? "var(--color-cocoa-soft)",
+              textShadow:
+                "0 0 4px var(--color-cream), 0 0 4px var(--color-cream), 0 0 4px var(--color-cream), 0 0 8px var(--color-cream)",
             }}
-            className="nodrag nopan shadow-sm"
+            className="nodrag nopan"
           >
             {label}
           </div>
