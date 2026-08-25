@@ -1,9 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RELATIONSHIP_ROLES } from "@/lib/people/roles";
 
 export default function RoleTag({ personId, initialRole }: { personId: string; initialRole: string | null }) {
+  const router = useRouter();
   const [role, setRole] = useState(initialRole);
   const [saving, setSaving] = useState(false);
 
@@ -18,7 +20,13 @@ export default function RoleTag({ personId, initialRole }: { personId: string; i
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: value }),
       });
-      if (!res.ok) setRole(previous);
+      if (!res.ok) {
+        setRole(previous);
+        return;
+      }
+      // The avatar colour on this page (and elsewhere) is derived from the
+      // role server-side, so refresh to pick up the new colour immediately.
+      router.refresh();
     } catch {
       setRole(previous);
     } finally {

@@ -52,7 +52,7 @@ async function main() {
   const alvin = randomUUID();
 
   const { error: peopleError } = await supabase.from("people").insert([
-    { id: john, workspace_id: DEMO_WORKSPACE_ID, name: "John", roles: ["Manager"], aliases: ["JT"] },
+    { id: john, workspace_id: DEMO_WORKSPACE_ID, name: "John", roles: ["Upper management"], aliases: ["JT"] },
     { id: sarah, workspace_id: DEMO_WORKSPACE_ID, name: "Sarah", roles: ["Stakeholder"], aliases: [] },
     { id: alvin, workspace_id: DEMO_WORKSPACE_ID, name: "Alvin", roles: ["Peer"], aliases: [] },
   ]);

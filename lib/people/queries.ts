@@ -59,6 +59,7 @@ export type PlaybookInsight = EditableInsight & { type: string };
 export type PlaybookRelationship = EditableInsight & {
   otherPersonId: string;
   otherPersonName: string;
+  otherPersonRole: string | null;
 };
 
 export type PersonLesson = {
@@ -130,13 +131,17 @@ export async function getPersonPlaybook(
     new Set((relRows ?? []).map((r) => (r.person_a_id === personId ? r.person_b_id : r.person_a_id)))
   );
   const otherNames = new Map<string, string>();
+  const otherRoles = new Map<string, string | null>();
   if (otherIds.length > 0) {
     const { data: otherPeople, error: otherError } = await supabase
       .from("people")
-      .select("id,name")
+      .select("id,name,roles")
       .in("id", otherIds);
     if (otherError) throw otherError;
-    for (const p of otherPeople ?? []) otherNames.set(p.id, p.name);
+    for (const p of otherPeople ?? []) {
+      otherNames.set(p.id, p.name);
+      otherRoles.set(p.id, p.roles[0] ?? null);
+    }
   }
 
   const relEvidenceById = await fetchEvidenceMap(
@@ -152,6 +157,7 @@ export async function getPersonPlaybook(
       id: r.id,
       otherPersonId,
       otherPersonName: otherNames.get(otherPersonId) ?? "Unknown",
+      otherPersonRole: otherRoles.get(otherPersonId) ?? null,
       content: r.content,
       confidence: r.confidence,
       isInferred: r.is_inferred,

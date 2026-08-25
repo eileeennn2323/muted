@@ -8,7 +8,7 @@ import RelationshipList from "@/components/people/RelationshipList";
 import RoleTag from "@/components/people/RoleTag";
 import { ChatIcon, HeartIcon, HelpIcon, NoEntryIcon, PeopleIcon, SparkleIcon } from "@/components/people/icons";
 import { getPersonPlaybook } from "@/lib/people/queries";
-import { avatarColorFor } from "@/lib/people/avatarColor";
+import { avatarColorForRole } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { getWorkspaceId } from "@/lib/workspace";
@@ -42,7 +42,7 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
   const { person, insightsByType, relationships, lessons } = playbook;
   const approachInsights = insightsByType.approach ?? [];
   const generalInsights = insightsByType.general ?? [];
-  const avatarColor = avatarColorFor(person.name);
+  const avatarColor = avatarColorForRole(person.roles[0] ?? null);
 
   return (
     <div>

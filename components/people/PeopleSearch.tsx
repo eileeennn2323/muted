@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { PersonListItem } from "@/lib/people/queries";
-import { avatarColorFor } from "@/lib/people/avatarColor";
+import { avatarColorForRole } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
 
 function SearchIcon() {
@@ -67,7 +67,7 @@ export default function PeopleSearch({ people }: { people: PersonListItem[] }) {
       ) : (
         <ul className="mt-6 flex flex-col gap-2.5">
           {filtered.map((p) => {
-            const color = avatarColorFor(p.name);
+            const color = avatarColorForRole(p.roles[0] ?? null);
             return (
               <li key={p.id}>
                 <Link

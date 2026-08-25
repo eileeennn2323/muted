@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { PlaybookRelationship } from "@/lib/people/queries";
-import { avatarColorFor } from "@/lib/people/avatarColor";
+import { avatarColorForRole } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
 import EvidenceBlock from "@/components/shared/EvidenceBlock";
 
@@ -41,7 +41,7 @@ export default function RelationshipRow({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleted, setDeleted] = useState(false);
-  const color = avatarColorFor(item.otherPersonName);
+  const color = avatarColorForRole(item.otherPersonRole);
 
   if (deleted) return null;
 
