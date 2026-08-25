@@ -70,7 +70,7 @@ function getEdgeParams(source: InternalNode<Node>, target: InternalNode<Node>) {
   };
 }
 
-export default function FloatingEdge({ id, source, target, style, label, labelStyle, labelBgStyle, markerEnd }: EdgeProps) {
+export default function FloatingEdge({ id, source, target, style, label, labelStyle, labelBgStyle, markerEnd, data }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -87,23 +87,34 @@ export default function FloatingEdge({ id, source, target, style, label, labelSt
     targetPosition: targetPos,
   });
 
+  const onSelect = (data as { onSelect?: () => void } | undefined)?.onSelect;
+
   return (
     <>
       <BaseEdge id={id} path={edgePath} style={style} markerEnd={markerEnd} />
       {label && (
         <EdgeLabelRenderer>
           <div
+            onClick={onSelect}
             style={{
               position: "absolute",
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               pointerEvents: "all",
-              padding: "1px 6px",
-              borderRadius: 4,
-              fontSize: 11,
+              maxWidth: 220,
+              padding: "3px 8px",
+              borderRadius: 6,
+              fontSize: 11.5,
+              lineHeight: 1.4,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              cursor: onSelect ? "pointer" : undefined,
               background: (labelBgStyle as { fill?: string } | undefined)?.fill ?? "var(--color-cream)",
               color: (labelStyle as { fill?: string } | undefined)?.fill ?? "var(--color-cocoa-soft)",
             }}
-            className="nodrag nopan"
+            className="nodrag nopan shadow-sm"
           >
             {label}
           </div>

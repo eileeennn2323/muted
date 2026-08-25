@@ -39,7 +39,7 @@ function toFlowEdges(mapEdges: MapEdgeData[]): Edge[] {
     source: e.sourceNodeId,
     target: e.targetNodeId,
     type: "floating",
-    label: e.label,
+    label: e.content ?? e.label,
     style: edgeStyle(e.edgeKind),
     labelStyle: { fill: "var(--color-cocoa-soft)", fontSize: 11 },
     labelBgStyle: { fill: "var(--color-cream)" },
@@ -178,6 +178,15 @@ export default function RelationshipMap({
     setDetailEdge(edgeToMapEdgeData(edge));
   }, []);
 
+  // EdgeLabelRenderer content lives outside the SVG edge path, so clicking
+  // directly on the (now much bigger, multi-line) label text needs its own
+  // handler rather than relying on ReactFlow's onEdgeClick, which only
+  // fires for the thin path itself. Only wired up in "select" mode, to
+  // match the Connect/Note tools' click semantics elsewhere on the canvas.
+  const renderEdges = edges.map((e) =>
+    activeTool === "select" ? { ...e, data: { ...e.data, onSelect: () => handleEdgeSelect(e) } } : e
+  );
+
   const handleEdgeUpdated = useCallback(
     (patch: { id: string; label?: string; content?: string }) => {
       setEdges((prev) =>
@@ -249,7 +258,7 @@ export default function RelationshipMap({
         <div className={expanded ? "min-w-0 flex-1" : "min-w-0 flex-1"}>
           <Canvas
             nodes={renderNodes}
-            edges={edges}
+            edges={renderEdges}
             activeTool={activeTool}
             onNodesChange={onNodesChangeRaw}
             onEdgesChange={onEdgesChangeRaw}
