@@ -49,12 +49,12 @@ async function main() {
 
   const john = randomUUID();
   const sarah = randomUUID();
-  const alvin = randomUUID();
+  const jayden = randomUUID();
 
   const { error: peopleError } = await supabase.from("people").insert([
     { id: john, workspace_id: DEMO_WORKSPACE_ID, name: "John", roles: ["Upper management"], aliases: ["JT"] },
     { id: sarah, workspace_id: DEMO_WORKSPACE_ID, name: "Sarah", roles: ["Stakeholder"], aliases: [] },
-    { id: alvin, workspace_id: DEMO_WORKSPACE_ID, name: "Alvin", roles: ["Peer"], aliases: [] },
+    { id: jayden, workspace_id: DEMO_WORKSPACE_ID, name: "Jayden", roles: ["Peer"], aliases: [] },
   ]);
   if (peopleError) throw peopleError;
 
@@ -84,8 +84,8 @@ async function main() {
       id: note3,
       workspace_id: DEMO_WORKSPACE_ID,
       raw_content:
-        "Alvin joined today's steering committee. Noticed John was noticeably more careful with his numbers and double-checked everything before Alvin arrived. Separately: I flagged the resourcing risk two days early this time instead of waiting, and it landed much better than last month's last-minute timeline ambush.",
-      context_summary: "John was visibly more careful/prepared once Alvin was in the room.",
+        "Jayden joined today's steering committee. Noticed John was noticeably more careful with his numbers and double-checked everything before Jayden arrived. Separately: I flagged the resourcing risk two days early this time instead of waiting, and it landed much better than last month's last-minute timeline ambush.",
+      context_summary: "John was visibly more careful/prepared once Jayden was in the room.",
       created_at: "2026-08-05T11:30:00Z",
     },
   ]);
@@ -96,7 +96,7 @@ async function main() {
     { note_id: note1, person_id: sarah },
     { note_id: note2, person_id: sarah },
     { note_id: note3, person_id: john },
-    { note_id: note3, person_id: alvin },
+    { note_id: note3, person_id: jayden },
   ]);
   if (notePeopleError) throw notePeopleError;
 
@@ -211,7 +211,7 @@ async function main() {
   if (piEvidenceError) throw piEvidenceError;
 
   const relJohnSarah = randomUUID();
-  const relJohnAlvin = randomUUID();
+  const relJohnJayden = randomUUID();
 
   const { error: relError } = await supabase.from("relationship_insights").insert([
     {
@@ -225,14 +225,14 @@ async function main() {
       relationship_type: "influences",
     },
     {
-      id: relJohnAlvin,
+      id: relJohnJayden,
       workspace_id: DEMO_WORKSPACE_ID,
-      // Alvin is person_a here (not John) because relationship_type: "influences"
-      // means person_a influences person_b — it's Alvin's presence that changes
+      // Jayden is person_a here (not John) because relationship_type: "influences"
+      // means person_a influences person_b — it's Jayden's presence that changes
       // John's behaviour, not the other way round.
-      person_a_id: alvin,
+      person_a_id: jayden,
       person_b_id: john,
-      content: "John is noticeably more careful and double-checks numbers when Alvin is present.",
+      content: "John is noticeably more careful and double-checks numbers when Jayden is present.",
       confidence: "low",
       is_inferred: true,
       relationship_type: "influences",
@@ -243,7 +243,7 @@ async function main() {
   const { error: relEvidenceError } = await supabase.from("relationship_insight_evidence").insert([
     { relationship_insight_id: relJohnSarah, note_id: note1 },
     { relationship_insight_id: relJohnSarah, note_id: note2 },
-    { relationship_insight_id: relJohnAlvin, note_id: note3 },
+    { relationship_insight_id: relJohnJayden, note_id: note3 },
   ]);
   if (relEvidenceError) throw relEvidenceError;
 
