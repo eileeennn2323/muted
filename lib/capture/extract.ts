@@ -11,6 +11,7 @@ import {
 import { GEMINI_CAPTURE_SCHEMA } from "./geminiRequestSchema";
 import { buildCapturePrompt } from "./prompt";
 import type { MemoryContext } from "./context";
+import { findBannedLanguage } from "@/lib/safety/bannedLanguage";
 
 /** Parses each item and logs (not just silently drops) whatever fails
  * validation — otherwise a Gemini quirk on one item can zero out an entire
@@ -44,6 +45,22 @@ function sanitizeQuote(quote: string | null, noteText: string): string | null {
   return trimmed;
 }
 
+/** Post-hoc safety net independent of the prompt's own instruction not to
+ * use these words — drops the specific item rather than the whole
+ * extraction, matching the resilience pattern used everywhere else here. */
+function filterBannedLanguage<T>(items: T[], label: string, ...fieldsOf: ((item: T) => string | null | undefined)[]): T[] {
+  return items.filter((item) => {
+    for (const getField of fieldsOf) {
+      const hit = findBannedLanguage(getField(item));
+      if (hit) {
+        console.error(`Dropped ${label} item for banned language ("${hit}"):`, JSON.stringify(item));
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
 /**
  * Validates each array item / nullable object independently and drops
  * whatever doesn't conform, instead of failing the whole capture for one bad
@@ -57,31 +74,50 @@ function coerceToCaptureExtraction(raw: unknown, noteText: string): CaptureExtra
 
   const people = Array.isArray(obj.people) ? parseItems(PersonMentionSchema, obj.people, "people") : [];
 
-  const person_insights = Array.isArray(obj.person_insights)
-    ? parseItems(PersonInsightSchema, obj.person_insights, "person_insights").map((pi) => ({
-        ...pi,
-        quote: sanitizeQuote(pi.quote, noteText),
-      }))
-    : [];
+  const person_insights = filterBannedLanguage(
+    Array.isArray(obj.person_insights)
+      ? parseItems(PersonInsightSchema, obj.person_insights, "person_insights").map((pi) => ({
+          ...pi,
+          quote: sanitizeQuote(pi.quote, noteText),
+        }))
+      : [],
+    "person_insights",
+    (pi) => pi.content
+  );
 
-  const relationship_insights = Array.isArray(obj.relationship_insights)
-    ? parseItems(RelationshipInsightSchema, obj.relationship_insights, "relationship_insights").map((ri) => ({
-        ...ri,
-        quote: sanitizeQuote(ri.quote, noteText),
-      }))
-    : [];
+  const relationship_insights = filterBannedLanguage(
+    Array.isArray(obj.relationship_insights)
+      ? parseItems(RelationshipInsightSchema, obj.relationship_insights, "relationship_insights").map((ri) => ({
+          ...ri,
+          quote: sanitizeQuote(ri.quote, noteText),
+        }))
+      : [],
+    "relationship_insights",
+    (ri) => ri.content
+  );
 
   const contextSummaryResult =
     typeof obj.context_summary === "string" ? obj.context_summary.slice(0, 300) : null;
 
-  const lessons = Array.isArray(obj.lessons)
-    ? parseItems(LessonSchema, obj.lessons, "lessons").map((l) => ({ ...l, quote: sanitizeQuote(l.quote, noteText) }))
-    : [];
+  const lessons = filterBannedLanguage(
+    Array.isArray(obj.lessons)
+      ? parseItems(LessonSchema, obj.lessons, "lessons").map((l) => ({ ...l, quote: sanitizeQuote(l.quote, noteText) }))
+      : [],
+    "lessons",
+    (l) => l.title,
+    (l) => l.explanation
+  );
+
   const selfInsightParsed = obj.self_insight ? SelfInsightSchema.safeParse(obj.self_insight) : null;
-  const selfInsightResult =
+  const selfInsightCandidate =
     selfInsightParsed?.success
       ? { ...selfInsightParsed.data, quote: sanitizeQuote(selfInsightParsed.data.quote, noteText) }
       : null;
+  const selfInsightBannedHit = findBannedLanguage(selfInsightCandidate?.content);
+  if (selfInsightBannedHit) {
+    console.error(`Dropped self_insight for banned language ("${selfInsightBannedHit}"):`, JSON.stringify(selfInsightCandidate));
+  }
+  const selfInsightResult = selfInsightBannedHit ? null : selfInsightCandidate;
 
   return {
     people,

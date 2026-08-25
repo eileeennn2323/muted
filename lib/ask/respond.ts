@@ -4,6 +4,7 @@ import { AskAnswerSchema, type AskAnswer } from "./schema";
 import { GEMINI_ASK_SCHEMA } from "./geminiRequestSchema";
 import { buildAskPrompt } from "./prompt";
 import type { AskContext } from "./context";
+import { findBannedLanguage } from "@/lib/safety/bannedLanguage";
 
 async function callGemini(
   question: string,
@@ -49,7 +50,36 @@ async function callGemini(
     // Hardening: never trust a note id Gemini didn't actually see in context.
     const based_on_note_ids = result.data.based_on_note_ids.filter((id) => context.availableNoteIds.has(id));
 
-    return { ...result.data, based_on_note_ids };
+    // Post-hoc safety net independent of the prompt's own instruction not to
+    // use these words. `approach` is required, so a hit there fails the
+    // whole generation (triggers the caller's retry) rather than shipping a
+    // patched-down answer; the other fields are already nullable/droppable.
+    const approachHit = findBannedLanguage(result.data.approach);
+    if (approachHit) {
+      console.error(`Ask Muted response dropped for banned language ("${approachHit}") in approach:`, result.data.approach);
+      return null;
+    }
+
+    const avoidHit = findBannedLanguage(result.data.avoid);
+    if (avoidHit) console.error(`Ask Muted "avoid" cleared for banned language ("${avoidHit}"):`, result.data.avoid);
+
+    const watchYourselfHit = findBannedLanguage(result.data.watch_yourself);
+    if (watchYourselfHit)
+      console.error(`Ask Muted "watch_yourself" cleared for banned language ("${watchYourselfHit}"):`, result.data.watch_yourself);
+
+    const expect = result.data.expect.filter((item) => {
+      const hit = findBannedLanguage(item);
+      if (hit) console.error(`Ask Muted "expect" item dropped for banned language ("${hit}"):`, item);
+      return !hit;
+    });
+
+    return {
+      ...result.data,
+      avoid: avoidHit ? null : result.data.avoid,
+      watch_yourself: watchYourselfHit ? null : result.data.watch_yourself,
+      expect,
+      based_on_note_ids,
+    };
   } catch (error) {
     console.error("Gemini ask call failed (network, timeout, or API error):", error);
     return null;
