@@ -19,6 +19,17 @@ export function SparkleIcon({ className }: IconProps) {
   );
 }
 
+/** A solid, filled four-point sparkle/twinkle glyph — used for the Ask
+ * Muted trigger specifically, distinct from the outlined compass-style
+ * SparkleIcon used elsewhere (e.g. "Working with {name}"). */
+export function TwinkleIcon({ className }: { className?: string }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M12 2c.5 4.2 1.9 7.6 10 10-8.1 2.4-9.5 5.8-10 10-.5-4.2-1.9-7.6-10-10 8.1-2.4 9.5-5.8 10-10Z" />
+    </svg>
+  );
+}
+
 export function HeartIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>

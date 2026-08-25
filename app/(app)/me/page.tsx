@@ -40,7 +40,7 @@ export default async function MePage() {
       <div className="mt-8">
         <h2 className="font-serif text-xl font-light text-cocoa">Relevant lessons</h2>
         <p className="mt-1 text-[13.5px] text-cocoa-soft">Lessons repeatedly connected to your own behaviour.</p>
-        <div className="mt-4 max-w-lg">
+        <div className="mt-4">
           <LessonThemeList initialLessons={relevantLessons} />
         </div>
       </div>

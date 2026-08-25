@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Nav from "./Nav";
 import AskMutedPanel from "./ask/AskMutedPanel";
-import { SparkleIcon } from "./people/icons";
+import { TwinkleIcon } from "./people/icons";
 
 /** Owns the Ask Muted open/close state so the drawer can genuinely push the
  * main content aside on desktop (a real flex sibling, not an overlay) while
@@ -29,9 +29,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto w-full max-w-5xl">{children}</div>
       </main>
 
-      {/* Desktop: a real flex sibling that widens/narrows, pushing `main` aside. */}
+      {/* Desktop: a real flex sibling that widens/narrows, pushing `main` aside.
+          Sticky + viewport-height so the drawer stays put — and only its own
+          message list scrolls — instead of scrolling away with a tall page. */}
       <div
-        className={`hidden shrink-0 overflow-hidden border-border transition-[width] duration-300 ease-out md:block ${
+        className={`hidden shrink-0 overflow-hidden border-border transition-[width] duration-300 ease-out md:sticky md:top-0 md:block md:h-screen ${
           askOpen ? "md:w-[400px] md:border-l" : "md:w-0"
         }`}
       >
@@ -63,7 +65,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           title="Ask Muted"
           className="fixed right-4 bottom-20 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-brass-solid text-brass-ink shadow-lg transition-transform hover:scale-105 md:right-7 md:bottom-7"
         >
-          <SparkleIcon className="h-6 w-6" />
+          <TwinkleIcon className="h-6 w-6" />
         </button>
       )}
     </div>
