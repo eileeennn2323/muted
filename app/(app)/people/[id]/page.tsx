@@ -108,11 +108,9 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
 
       {relationships.length > 0 && (
         <div className="mt-8">
-          <h2 className="font-serif text-xl font-light text-cocoa">Works with</h2>
-          <div className="mt-4">
+          <h2 className="font-serif text-xl font-light text-cocoa">Relationships</h2>
+          <div className="mt-4 grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <RelationshipGraph personName={person.name} relationships={relationships} />
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {relationships.map((r) => (
               <RelationshipCard key={r.id} relationship={r} />
             ))}

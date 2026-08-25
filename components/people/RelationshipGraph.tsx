@@ -32,8 +32,8 @@ export default function RelationshipGraph({
   const extra = relationships.length - shown.length;
 
   return (
-    <div className="rounded-2xl border border-border bg-paper p-5">
-      <div className="relative mx-auto aspect-square w-full max-w-[300px]">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-paper p-5">
+      <div className="relative aspect-square w-full max-w-[220px]">
         <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden>
           {shown.map((r, i) => {
             const { x, y } = nodePosition(i, shown.length);
@@ -57,10 +57,10 @@ export default function RelationshipGraph({
           className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
           style={{ left: "50%", top: "50%" }}
         >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-cedar font-serif text-base text-cream shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cedar font-serif text-sm text-cream shadow-sm">
             {initialsFor(personName)}
           </div>
-          <span className="max-w-[76px] truncate whitespace-nowrap font-mono text-[10px] text-cocoa-quiet">
+          <span className="max-w-[64px] truncate whitespace-nowrap font-mono text-[9.5px] text-cocoa-quiet">
             {personName}
           </span>
         </div>
@@ -75,10 +75,10 @@ export default function RelationshipGraph({
               className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
               style={{ left: `${x}%`, top: `${y}%` }}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sage font-serif text-xs text-cedar-deep ring-2 ring-paper transition-transform hover:scale-105">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sage font-serif text-[11px] text-cedar-deep ring-2 ring-paper transition-transform hover:scale-105">
                 {initialsFor(r.otherPersonName)}
               </span>
-              <span className="max-w-[72px] truncate text-center text-[11px] text-cocoa-soft">
+              <span className="max-w-[60px] truncate text-center text-[10.5px] text-cocoa-soft">
                 {r.otherPersonName}
               </span>
             </Link>
