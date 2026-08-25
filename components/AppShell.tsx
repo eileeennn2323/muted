@@ -55,15 +55,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setAskOpen((v) => !v)}
-        aria-label="Ask Muted"
-        title="Ask Muted"
-        className="fixed right-4 bottom-20 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-brass-solid text-brass-ink shadow-lg transition-transform hover:scale-105 md:right-7 md:bottom-7"
-      >
-        <SparkleIcon className="h-6 w-6" />
-      </button>
+      {!askOpen && (
+        <button
+          type="button"
+          onClick={() => setAskOpen(true)}
+          aria-label="Ask Muted"
+          title="Ask Muted"
+          className="fixed right-4 bottom-20 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-brass-solid text-brass-ink shadow-lg transition-transform hover:scale-105 md:right-7 md:bottom-7"
+        >
+          <SparkleIcon className="h-6 w-6" />
+        </button>
+      )}
     </div>
   );
 }

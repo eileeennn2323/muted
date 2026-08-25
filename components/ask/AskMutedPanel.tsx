@@ -266,15 +266,25 @@ export default function AskMutedPanel({ onClose }: { onClose?: () => void }) {
           e.preventDefault();
           send(input);
         }}
-        className="mt-4 flex shrink-0 items-center gap-2 rounded-full bg-sand px-4 py-2"
+        className="mt-4 flex shrink-0 items-end gap-2 rounded-2xl bg-sand px-4 py-2.5"
       >
-        <input
-          type="text"
+        <textarea
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              send(input);
+            }
+          }}
           disabled={sending}
           placeholder="Ask Muted anything…"
-          className="flex-1 bg-transparent text-sm text-cocoa placeholder:text-cocoa-faint disabled:opacity-70"
+          rows={1}
+          className="max-h-40 flex-1 resize-none bg-transparent py-1 text-sm text-cocoa placeholder:text-cocoa-faint disabled:opacity-70"
         />
         <button
           type="submit"

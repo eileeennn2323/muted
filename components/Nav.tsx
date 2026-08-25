@@ -23,7 +23,7 @@ export default function Nav() {
   return (
     <>
       {/* Desktop / tablet: compact icon-led rail */}
-      <nav className="hidden md:flex md:w-[84px] md:shrink-0 md:flex-col md:items-center md:gap-8 md:border-r md:border-border md:bg-sand md:py-7">
+      <nav className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-[84px] md:shrink-0 md:flex-col md:items-center md:gap-8 md:self-start md:overflow-y-auto md:border-r md:border-border md:bg-sand md:py-7">
         <Link href="/" className="text-cedar transition-opacity hover:opacity-75">
           <Logo size={28} />
         </Link>
