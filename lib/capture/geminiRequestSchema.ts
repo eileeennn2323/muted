@@ -57,6 +57,7 @@ export const GEMINI_CAPTURE_SCHEMA = {
           is_inferred: { type: "boolean" },
           existing_relationship_insight_id: nullableString,
           quote: nullableString,
+          relationship_type: nullableString,
         },
         required: [
           "person_a_ref",
@@ -66,6 +67,7 @@ export const GEMINI_CAPTURE_SCHEMA = {
           "is_inferred",
           "existing_relationship_insight_id",
           "quote",
+          "relationship_type",
         ],
       },
     },

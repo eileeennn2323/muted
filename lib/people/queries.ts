@@ -56,12 +56,6 @@ export async function getPeopleList(supabase: SupabaseClient, workspaceId: strin
 
 export type PlaybookInsight = EditableInsight & { type: string };
 
-export type PlaybookRelationship = EditableInsight & {
-  otherPersonId: string;
-  otherPersonName: string;
-  otherPersonRole: string | null;
-};
-
 export type PersonLesson = {
   id: string;
   title: string;
@@ -72,7 +66,6 @@ export type PersonLesson = {
 export type PersonPlaybook = {
   person: { id: string; name: string; roles: string[] };
   insightsByType: Record<string, PlaybookInsight[]>;
-  relationships: PlaybookRelationship[];
   lessons: PersonLesson[];
 };
 
@@ -120,52 +113,6 @@ export async function getPersonPlaybook(
     (insightsByType[insight.type] ??= []).push(entry);
   }
 
-  const { data: relRows, error: relError } = await supabase
-    .from("relationship_insights")
-    .select("id,person_a_id,person_b_id,content,confidence,is_inferred,user_edited")
-    .eq("workspace_id", workspaceId)
-    .or(`person_a_id.eq.${personId},person_b_id.eq.${personId}`);
-  if (relError) throw relError;
-
-  const otherIds = Array.from(
-    new Set((relRows ?? []).map((r) => (r.person_a_id === personId ? r.person_b_id : r.person_a_id)))
-  );
-  const otherNames = new Map<string, string>();
-  const otherRoles = new Map<string, string | null>();
-  if (otherIds.length > 0) {
-    const { data: otherPeople, error: otherError } = await supabase
-      .from("people")
-      .select("id,name,roles")
-      .in("id", otherIds);
-    if (otherError) throw otherError;
-    for (const p of otherPeople ?? []) {
-      otherNames.set(p.id, p.name);
-      otherRoles.set(p.id, p.roles[0] ?? null);
-    }
-  }
-
-  const relEvidenceById = await fetchEvidenceMap(
-    supabase,
-    "relationship_insight_evidence",
-    "relationship_insight_id",
-    (relRows ?? []).map((r) => r.id)
-  );
-
-  const relationships: PlaybookRelationship[] = (relRows ?? []).map((r) => {
-    const otherPersonId = r.person_a_id === personId ? r.person_b_id : r.person_a_id;
-    return {
-      id: r.id,
-      otherPersonId,
-      otherPersonName: otherNames.get(otherPersonId) ?? "Unknown",
-      otherPersonRole: otherRoles.get(otherPersonId) ?? null,
-      content: r.content,
-      confidence: r.confidence,
-      isInferred: r.is_inferred,
-      userEdited: r.user_edited,
-      evidence: relEvidenceById.get(r.id) ?? [],
-    };
-  });
-
   const { data: lessonLinks, error: lessonLinksError } = await supabase
     .from("lesson_people")
     .select("lesson_id")
@@ -190,5 +137,5 @@ export async function getPersonPlaybook(
     }));
   }
 
-  return { person, insightsByType, relationships, lessons };
+  return { person, insightsByType, lessons };
 }

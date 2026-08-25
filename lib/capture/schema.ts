@@ -10,6 +10,7 @@ export const PERSON_INSIGHT_TYPES = [
   "general",
 ] as const;
 export const SELF_INSIGHT_TYPES = ["pattern", "strength", "watch_out", "working_on"] as const;
+export const RELATIONSHIP_TYPES = ["reports_to", "influences", "works_closely_with"] as const;
 export const LESSON_THEMES = [
   "Communication",
   "Leadership",
@@ -21,6 +22,7 @@ const confidenceEnum = z.enum(CONFIDENCE_VALUES);
 const personInsightTypeEnum = z.enum(PERSON_INSIGHT_TYPES);
 const selfInsightTypeEnum = z.enum(SELF_INSIGHT_TYPES);
 const themeEnum = z.enum(LESSON_THEMES);
+const relationshipTypeEnum = z.enum(RELATIONSHIP_TYPES);
 
 const quoteField = z
   .string()
@@ -81,6 +83,11 @@ export const RelationshipInsightSchema = z.object({
       "Set to an existing relationship insight id from context to reinforce/refine it in place. Null to create a new one."
     ),
   quote: quoteField,
+  relationship_type: relationshipTypeEnum
+    .nullable()
+    .describe(
+      "Classify the dynamic when it clearly fits one of: reports_to (person_a_ref reports to / is managed by person_b_ref), influences (person_a_ref influences person_b_ref's decisions or behaviour), works_closely_with (frequent close collaboration, no clear hierarchy). Null if the note doesn't clearly support one of these three."
+    ),
 });
 
 export const LessonSchema = z.object({

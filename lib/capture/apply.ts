@@ -189,6 +189,9 @@ export async function applyCaptureExtraction(params: {
         confidence: ri.confidence,
         is_inferred: ri.is_inferred,
         user_edited: false,
+        // Set once at creation, like person_insights.type — a relationship's
+        // category doesn't change on reinforcement, only its wording does.
+        relationship_type: ri.relationship_type,
       });
       if (!error) {
         await linkEvidence(supabase, "relationship_insight_evidence", "relationship_insight_id", newId, noteId, ri.quote);

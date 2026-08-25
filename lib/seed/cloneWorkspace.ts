@@ -71,6 +71,7 @@ export async function cloneDemoDataInto(
       confidence: row.confidence,
       is_inferred: row.is_inferred,
       user_edited: row.user_edited,
+      relationship_type: row.relationship_type,
       created_at: row.created_at,
       updated_at: row.updated_at,
     })

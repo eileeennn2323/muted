@@ -222,15 +222,20 @@ async function main() {
       content: "Sarah gives much more detail on resourcing when John isn't in the room.",
       confidence: "medium",
       is_inferred: true,
+      relationship_type: "influences",
     },
     {
       id: relJohnAlvin,
       workspace_id: DEMO_WORKSPACE_ID,
-      person_a_id: john,
-      person_b_id: alvin,
+      // Alvin is person_a here (not John) because relationship_type: "influences"
+      // means person_a influences person_b — it's Alvin's presence that changes
+      // John's behaviour, not the other way round.
+      person_a_id: alvin,
+      person_b_id: john,
       content: "John is noticeably more careful and double-checks numbers when Alvin is present.",
       confidence: "low",
       is_inferred: true,
+      relationship_type: "influences",
     },
   ]);
   if (relError) throw relError;

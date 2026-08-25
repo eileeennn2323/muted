@@ -4,9 +4,9 @@ import DeletePersonMenu from "@/components/people/DeletePersonMenu";
 import FacetCard from "@/components/people/FacetCard";
 import InsightList from "@/components/people/InsightList";
 import PersonLessons from "@/components/people/PersonLessons";
-import RelationshipList from "@/components/people/RelationshipList";
+import RelationshipMapSection from "@/components/people/map/RelationshipMapSection";
 import RoleTag from "@/components/people/RoleTag";
-import { ChatIcon, HeartIcon, HelpIcon, NoEntryIcon, PeopleIcon, SparkleIcon } from "@/components/people/icons";
+import { ChatIcon, HeartIcon, HelpIcon, NoEntryIcon, SparkleIcon } from "@/components/people/icons";
 import { getPersonPlaybook } from "@/lib/people/queries";
 import { avatarColorForRole } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
@@ -39,7 +39,7 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
     );
   }
 
-  const { person, insightsByType, relationships, lessons } = playbook;
+  const { person, insightsByType, lessons } = playbook;
   const approachInsights = insightsByType.approach ?? [];
   const generalInsights = insightsByType.general ?? [];
   const avatarColor = avatarColorForRole(person.roles[0] ?? null);
@@ -110,12 +110,8 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
 
       <PersonLessons lessons={lessons} />
 
-      {relationships.length > 0 && (
-        <div className="mt-8">
-          <FacetCard title="Relationships" icon={<PeopleIcon />} count={relationships.length}>
-            <RelationshipList initialRelationships={relationships} />
-          </FacetCard>
-        </div>
+      {workspaceId && (
+        <RelationshipMapSection supabase={getSupabaseAdmin()} workspaceId={workspaceId} personId={person.id} />
       )}
     </div>
   );
