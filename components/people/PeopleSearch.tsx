@@ -5,6 +5,9 @@ import { useMemo, useState } from "react";
 import type { PersonListItem } from "@/lib/people/queries";
 import { avatarColorForRole } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
+import { RELATIONSHIP_ROLES } from "@/lib/people/roles";
+
+const TABS = ["All", ...RELATIONSHIP_ROLES] as const;
 
 function SearchIcon() {
   return (
@@ -34,14 +37,16 @@ function ChevronIcon() {
 
 export default function PeopleSearch({ people }: { people: PersonListItem[] }) {
   const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<(typeof TABS)[number]>("All");
 
   const filtered = useMemo(() => {
+    const byTab = tab === "All" ? people : people.filter((p) => p.roles[0] === tab);
     const q = query.trim().toLowerCase();
-    if (!q) return people;
-    return people.filter(
+    if (!q) return byTab;
+    return byTab.filter(
       (p) => p.name.toLowerCase().includes(q) || p.roles.some((r) => r.toLowerCase().includes(q))
     );
-  }, [people, query]);
+  }, [people, query, tab]);
 
   return (
     <div>
@@ -58,12 +63,31 @@ export default function PeopleSearch({ people }: { people: PersonListItem[] }) {
         />
       </div>
 
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`shrink-0 rounded-full border px-4 py-1.5 text-[13.5px] whitespace-nowrap transition-colors ${
+              tab === t
+                ? "border-cedar bg-cedar text-cream"
+                : "border-border text-cocoa-soft hover:border-cocoa-quiet hover:text-cocoa"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
       {people.length === 0 ? (
         <p className="mt-10 font-serif text-lg text-cocoa-faint">
           No one yet — capture a note that mentions someone and they&rsquo;ll show up here.
         </p>
       ) : filtered.length === 0 ? (
-        <p className="mt-10 font-serif text-lg text-cocoa-faint">Nobody here by that name.</p>
+        <p className="mt-10 font-serif text-lg text-cocoa-faint">
+          {query.trim() ? "Nobody here by that name." : `No one tagged "${tab}" yet.`}
+        </p>
       ) : (
         <ul className="mt-6 flex flex-col gap-2.5">
           {filtered.map((p) => {
