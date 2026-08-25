@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { PersonListItem } from "@/lib/people/queries";
+import { avatarColorFor } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
 
 function SearchIcon() {
@@ -65,33 +66,40 @@ export default function PeopleSearch({ people }: { people: PersonListItem[] }) {
         <p className="mt-10 font-serif text-lg text-cocoa-faint">Nobody here by that name.</p>
       ) : (
         <ul className="mt-6 flex flex-col gap-2.5">
-          {filtered.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={`/people/${p.id}`}
-                className="group flex flex-col gap-2 rounded-2xl border border-border bg-paper px-5 py-4 transition-colors hover:border-cocoa-quiet hover:bg-white"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-sage font-serif text-base text-cedar-deep">
-                    {initialsFor(p.name)}
+          {filtered.map((p) => {
+            const color = avatarColorFor(p.name);
+            return (
+              <li key={p.id}>
+                <Link
+                  href={`/people/${p.id}`}
+                  className="group flex flex-col gap-2 rounded-2xl border border-border bg-paper px-5 py-4 transition-colors hover:border-cocoa-quiet hover:bg-white"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-serif text-base ${color.bg} ${color.text}`}
+                    >
+                      {initialsFor(p.name)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15.5px] text-cocoa">{p.name}</p>
+                      {p.roles.length > 0 && (
+                        <span className="mt-0.5 inline-block rounded-full bg-sand px-2 py-0.5 font-mono text-[10px] tracking-wide text-cocoa-soft uppercase">
+                          {p.roles[0]}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[10.5px] whitespace-nowrap text-cocoa-quiet">
+                      {p.insightCount > 0 ? `${p.insightCount} insight${p.insightCount === 1 ? "" : "s"}` : "New"}
+                    </span>
+                    <ChevronIcon />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15.5px] text-cocoa">{p.name}</p>
-                    {p.roles.length > 0 && (
-                      <p className="truncate text-[13px] text-cocoa-faint">{p.roles.join(" · ")}</p>
-                    )}
-                  </div>
-                  <span className="font-mono text-[10.5px] whitespace-nowrap text-cocoa-quiet">
-                    {p.insightCount > 0 ? `${p.insightCount} insight${p.insightCount === 1 ? "" : "s"}` : "New"}
-                  </span>
-                  <ChevronIcon />
-                </div>
-                {p.headline && (
-                  <p className="truncate pl-[56px] text-[13.5px] text-cocoa-soft">{p.headline}</p>
-                )}
-              </Link>
-            </li>
-          ))}
+                  {p.headline && (
+                    <p className="truncate pl-[56px] text-[13.5px] text-cocoa-soft">{p.headline}</p>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

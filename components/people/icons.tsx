@@ -55,6 +55,17 @@ export function SeedlingIcon({ className }: IconProps) {
   );
 }
 
+export function PeopleIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden>
+      <circle cx="9" cy="9.5" r="3.3" />
+      <circle cx="16.5" cy="10.8" r="2.6" />
+      <path d="M3.3 20c0-3.3 2.5-6 5.7-6s5.7 2.7 5.7 6" />
+      <path d="M14.3 15.3c2.2.4 4 2.3 4 4.7" />
+    </svg>
+  );
+}
+
 export function NoEntryIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden>

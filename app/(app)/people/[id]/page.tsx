@@ -4,10 +4,11 @@ import DeletePersonMenu from "@/components/people/DeletePersonMenu";
 import FacetCard from "@/components/people/FacetCard";
 import InsightList from "@/components/people/InsightList";
 import PersonLessons from "@/components/people/PersonLessons";
-import RelationshipCard from "@/components/people/RelationshipCard";
-import RelationshipGraph from "@/components/people/RelationshipGraph";
-import { ChatIcon, HeartIcon, HelpIcon, NoEntryIcon, SparkleIcon } from "@/components/people/icons";
+import RelationshipList from "@/components/people/RelationshipList";
+import RoleTag from "@/components/people/RoleTag";
+import { ChatIcon, HeartIcon, HelpIcon, NoEntryIcon, PeopleIcon, SparkleIcon } from "@/components/people/icons";
 import { getPersonPlaybook } from "@/lib/people/queries";
+import { avatarColorFor } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { getWorkspaceId } from "@/lib/workspace";
@@ -41,6 +42,7 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
   const { person, insightsByType, relationships, lessons } = playbook;
   const approachInsights = insightsByType.approach ?? [];
   const generalInsights = insightsByType.general ?? [];
+  const avatarColor = avatarColorFor(person.name);
 
   return (
     <div>
@@ -51,14 +53,16 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
       <AddNoteProvider>
         <div className="mt-4 flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-sage font-serif text-xl text-cedar-deep">
+            <div
+              className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full font-serif text-xl ${avatarColor.bg} ${avatarColor.text}`}
+            >
               {initialsFor(person.name)}
             </div>
             <div className="min-w-0">
               <h1 className="truncate font-serif text-3xl font-light tracking-tight text-cocoa">{person.name}</h1>
-              {person.roles.length > 0 && (
-                <p className="mt-0.5 text-[14px] text-cocoa-soft">{person.roles.join(" · ")}</p>
-              )}
+              <div className="mt-1.5">
+                <RoleTag personId={person.id} initialRole={person.roles[0] ?? null} />
+              </div>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -108,13 +112,9 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
 
       {relationships.length > 0 && (
         <div className="mt-8">
-          <h2 className="font-serif text-xl font-light text-cocoa">Relationships</h2>
-          <div className="mt-4 grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <RelationshipGraph personName={person.name} relationships={relationships} />
-            {relationships.map((r) => (
-              <RelationshipCard key={r.id} relationship={r} />
-            ))}
-          </div>
+          <FacetCard title="Relationships" icon={<PeopleIcon />} count={relationships.length}>
+            <RelationshipList initialRelationships={relationships} />
+          </FacetCard>
         </div>
       )}
     </div>
