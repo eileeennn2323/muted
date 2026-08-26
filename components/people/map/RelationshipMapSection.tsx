@@ -14,10 +14,28 @@ export default async function RelationshipMapSection({
   workspaceId: string;
   personId: string;
 }) {
-  const [map, people] = await Promise.all([
-    getOrCreateRelationshipMap(supabase, workspaceId, personId),
-    getPeopleList(supabase, workspaceId),
-  ]);
+  // A transient failure here (a flaky DB round-trip, a race on first-time
+  // map seeding) must not take down the rest of the person page with it —
+  // degrade to a retry message instead of throwing past this component.
+  let map: Awaited<ReturnType<typeof getOrCreateRelationshipMap>>;
+  let people: Awaited<ReturnType<typeof getPeopleList>>;
+  try {
+    [map, people] = await Promise.all([
+      getOrCreateRelationshipMap(supabase, workspaceId, personId),
+      getPeopleList(supabase, workspaceId),
+    ]);
+  } catch (error) {
+    console.error("Failed to load relationship map section:", error);
+    return (
+      <div className="mt-8">
+        <FacetCard title="Your relationship map" icon={<PeopleIcon />} count={0}>
+          <p className="text-[13.5px] text-cocoa-faint">
+            Couldn&rsquo;t load your relationship map right now. Refresh the page to try again.
+          </p>
+        </FacetCard>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-8">
