@@ -94,12 +94,7 @@ export default function CaptureForm({
       </form>
 
       {!onCancel && (
-        <div className="mt-4 space-y-2">
-          <p className="text-sm text-cocoa-faint italic">
-            e.g. &ldquo;gordon keeps saying &lsquo;exactly, you&rsquo;re absolutely right!&rsquo; then
-            does the opposite two minutes later — hard to communicate with, doesn&rsquo;t take
-            feedback.&rdquo;
-          </p>
+        <div className="mt-4">
           <p className="flex items-center gap-1.5 text-sm text-cocoa-faint">
             <LockIcon className="h-3.5 w-3.5" /> Private to you — no one else can see this.
           </p>
