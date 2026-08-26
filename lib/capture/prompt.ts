@@ -48,7 +48,7 @@ PERSON INSIGHT TYPES — six are available for person_insights.type, each answer
 - likely_questions ("Questions they'll probably ask"): predicted from repeated behaviour or explicit examples in the note. Do not invent a highly specific question without evidence.
 - avoid ("What to avoid"): behaviours, wording, or situations that create friction — focus on things the user can control, each as its own separate insight, never combined. Avoid judgmental labels.
 - approach ("Suggested approach", shown to the user as "Working with {name}"): 2-5 practical actions synthesising the overall playbook (how to involve them, what to lead with, what to bring) — not a repeat of the other four types.
-- general ("Read of this person"): what this person is generally like to work with, or how they tend to operate — presentation style, decision-making style, how they process information, how they relate to people, behaviour under disagreement/uncertainty. Describe an observable pattern, never a personality label, and never write a long personality biography.
+- general ("At a glance"): what this person is generally like to work with, or how they tend to operate — presentation style, decision-making style, how they process information, how they relate to people, behaviour under disagreement/uncertainty. Describe an observable pattern, never a personality label, and never write a long personality biography.
 Bad general: "Lionel is charismatic." Good general: "Lionel tends to engage the room through clear presentation, humour, and regular check-ins."
 Bad general: "Lionel is politically savvy." Good general: "Lionel pays attention to stakeholder influence and builds rapport with people who shape decisions."
 

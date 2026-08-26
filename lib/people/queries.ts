@@ -22,7 +22,7 @@ export async function getPeopleList(supabase: SupabaseClient, workspaceId: strin
 
   const { data: insights, error: insightsError } = await supabase
     .from("person_insights")
-    .select("person_id,content,updated_at")
+    .select("person_id,type,content,updated_at")
     .eq("workspace_id", workspaceId)
     .order("updated_at", { ascending: false });
   if (insightsError) throw insightsError;
@@ -36,10 +36,11 @@ export async function getPeopleList(supabase: SupabaseClient, workspaceId: strin
     if (!current || row.updated_at > current) {
       lastUpdatedByPerson.set(row.person_id, row.updated_at);
     }
-    // Rows arrive ordered by updated_at desc, so the first one seen per
-    // person is their most recently touched insight — a light "what's most
-    // current" preview line for the list row.
-    if (!headlineByPerson.has(row.person_id)) {
+    // The one-liner preview mirrors the person page's "At a glance" section
+    // specifically (type: general) — not just whatever insight of any type
+    // was touched most recently. Rows arrive ordered by updated_at desc, so
+    // the first "general" row seen per person is their most current one.
+    if (row.type === "general" && !headlineByPerson.has(row.person_id)) {
       headlineByPerson.set(row.person_id, row.content);
     }
   }

@@ -86,7 +86,7 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
 
       {generalInsights.length > 0 && (
         <div className="mt-6">
-          <h2 className="font-serif text-xl font-medium text-cocoa">Read of this person</h2>
+          <h2 className="font-serif text-xl font-medium text-cocoa">At a glance</h2>
           <div className="mt-2">
             <InsightList insights={generalInsights} />
           </div>
