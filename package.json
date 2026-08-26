@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
-    "reset-workspace": "tsx scripts/resetWorkspace.ts"
+    "reset-workspace": "tsx scripts/resetWorkspace.ts",
+    "dedupe-lessons": "tsx scripts/dedupeLessons.ts"
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.1.1",

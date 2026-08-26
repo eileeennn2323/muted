@@ -25,7 +25,7 @@ export type MemoryContext = {
   people: PersonRow[];
   personInsights: PersonInsightRow[];
   relationshipInsights: RelationshipInsightRow[];
-  lessons: { title: string; themes: string[] }[];
+  lessons: { id: string; title: string; themes: string[] }[];
   selfInsights: { type: string; content: string; confidence: string }[];
   /** Set when the note was captured from a specific person's page (Add note). */
   anchorPerson: PersonRow | null;
@@ -94,7 +94,7 @@ export async function buildMemoryContext(
 
   const { data: lessonsData, error: lessonsError } = await supabase
     .from("lessons")
-    .select("title,themes")
+    .select("id,title,themes")
     .eq("workspace_id", workspaceId);
   if (lessonsError) throw lessonsError;
 

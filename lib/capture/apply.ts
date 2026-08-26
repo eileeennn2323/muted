@@ -56,6 +56,7 @@ export async function applyCaptureExtraction(params: {
   const existingPersonIds = new Set(context.people.map((p) => p.id));
   const existingInsightIds = new Set(context.personInsights.map((i) => i.id));
   const existingRelationshipInsightIds = new Set(context.relationshipInsights.map((r) => r.id));
+  const existingLessonIds = new Set(context.lessons.map((l) => l.id));
 
   // ref -> resolved person id. Existing people resolve to themselves (identity).
   const refMap = new Map<string, string>();
@@ -250,17 +251,39 @@ export async function applyCaptureExtraction(params: {
     const title = lesson.title.trim();
     if (!title) continue;
 
-    const lessonId = crypto.randomUUID();
-    const { error } = await supabase.from("lessons").insert({
-      id: lessonId,
-      workspace_id: workspaceId,
-      title,
-      explanation: lesson.explanation?.trim() || null,
-      themes: lesson.themes,
-      is_inferred: lesson.is_inferred,
-      user_edited: false,
-    });
-    if (error) continue;
+    let lessonId: string;
+    const isNewLesson = !lesson.existing_lesson_id;
+
+    if (isNewLesson) {
+      lessonId = crypto.randomUUID();
+      const { error } = await supabase.from("lessons").insert({
+        id: lessonId,
+        workspace_id: workspaceId,
+        title,
+        explanation: lesson.explanation?.trim() || null,
+        themes: lesson.themes,
+        is_inferred: lesson.is_inferred,
+        user_edited: false,
+      });
+      if (error) continue;
+    } else {
+      // Hardening: only allow ids we actually offered Gemini in context.
+      if (!lesson.existing_lesson_id || !existingLessonIds.has(lesson.existing_lesson_id)) continue;
+      lessonId = lesson.existing_lesson_id;
+      const { error } = await supabase
+        .from("lessons")
+        .update({
+          title,
+          explanation: lesson.explanation?.trim() || null,
+          themes: lesson.themes,
+          is_inferred: lesson.is_inferred,
+          user_edited: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", lessonId)
+        .eq("workspace_id", workspaceId);
+      if (error) continue;
+    }
 
     await linkEvidence(supabase, "lesson_evidence", "lesson_id", lessonId, noteId, lesson.quote);
     const relatedIds = lesson.related_person_refs.map((ref) => resolveRef(ref)).filter((id): id is string => Boolean(id));

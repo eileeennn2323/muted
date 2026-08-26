@@ -95,6 +95,12 @@ export const LessonSchema = z.object({
   explanation: z.string().max(300).nullable(),
   themes: z.array(themeEnum).min(1).max(2),
   is_inferred: z.boolean(),
+  existing_lesson_id: z
+    .string()
+    .nullable()
+    .describe(
+      "Set to an existing lesson id from context to reinforce it in place — same underlying lesson, now with more evidence or clearer wording. Null to create a new lesson."
+    ),
   related_person_refs: z.array(z.string()).max(6),
   quote: quoteField,
 });
