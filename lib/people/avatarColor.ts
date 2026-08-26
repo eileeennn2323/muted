@@ -4,6 +4,7 @@ const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
   "Upper management": { bg: "bg-cedar-dark", text: "text-cream" },
   Stakeholder: { bg: "bg-brass-solid", text: "text-brass-ink" },
   Subordinate: { bg: "bg-cocoa-quiet", text: "text-cocoa" },
+  Vendor: { bg: "bg-brass", text: "text-cream" },
   Other: { bg: "bg-cocoa-faint", text: "text-cream" },
 };
 

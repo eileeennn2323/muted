@@ -4,6 +4,7 @@ export const RELATIONSHIP_ROLES = [
   "Upper management",
   "Stakeholder",
   "Subordinate",
+  "Vendor",
   "Other",
 ] as const;
 
