@@ -1,6 +1,6 @@
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
   Peer: { bg: "bg-sage", text: "text-cedar-deep" },
-  "Direct report": { bg: "bg-cedar", text: "text-cream" },
+  "Direct boss": { bg: "bg-cedar", text: "text-cream" },
   "Upper management": { bg: "bg-cedar-dark", text: "text-cream" },
   Stakeholder: { bg: "bg-brass-solid", text: "text-brass-ink" },
   Subordinate: { bg: "bg-cocoa-quiet", text: "text-cocoa" },

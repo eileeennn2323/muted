@@ -1,6 +1,6 @@
 export const RELATIONSHIP_ROLES = [
   "Peer",
-  "Direct report",
+  "Direct boss",
   "Upper management",
   "Stakeholder",
   "Subordinate",
