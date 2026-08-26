@@ -6,6 +6,12 @@
  * it refers to a real organisation, project, or person. That's a hard
  * requirement, not a style choice: this data is served on a public URL.
  *
+ * Every insight/relationship/lesson below carries an explicit `quote` — a
+ * verbatim substring of its evidence note, exactly like real Capture
+ * extraction does. Without it, the evidence UI falls back to a truncated
+ * dump of the whole note, which is both harder to read and looks identical
+ * across every insight that cites the same note.
+ *
  * This is a standalone script (not part of the Next.js app bundle), so it
  * creates its own Supabase client directly rather than importing the
  * "server-only"-guarded app client.
@@ -44,6 +50,7 @@ type PersonInsightSeed = {
   confidence: Confidence;
   isInferred: boolean;
   noteId: string;
+  quote: string;
 };
 
 type LessonSeed = {
@@ -52,6 +59,7 @@ type LessonSeed = {
   theme: "Communication" | "Leadership" | "Stakeholder Management" | "Personal Growth";
   isInferred: boolean;
   noteId: string;
+  quote: string;
   relatedPersonIds?: string[];
 };
 
@@ -72,7 +80,7 @@ function addPersonInsights(personId: string, items: PersonInsightSeed[]) {
       confidence: item.confidence,
       is_inferred: item.isInferred,
     });
-    personInsightEvidenceRows.push({ insight_id: id, note_id: item.noteId });
+    personInsightEvidenceRows.push({ insight_id: id, note_id: item.noteId, quote: item.quote });
   }
 }
 
@@ -91,7 +99,7 @@ function addLesson(seed: LessonSeed) {
     is_inferred: seed.isInferred,
     user_edited: false,
   });
-  lessonEvidenceRows.push({ lesson_id: id, note_id: seed.noteId });
+  lessonEvidenceRows.push({ lesson_id: id, note_id: seed.noteId, quote: seed.quote });
   for (const personId of seed.relatedPersonIds ?? []) {
     lessonPeopleRows.push({ lesson_id: id, person_id: personId });
   }
@@ -132,9 +140,10 @@ async function main() {
   if (peopleError) throw peopleError;
 
   // ---- Notes ----------------------------------------------------------------
-  // note1-note3 are the original demo notes, kept verbatim — everything they
-  // support (John, Sarah, Jayden's existing insights, and the self-insights
-  // below) stays exactly as it was.
+  // note1-note3 are the original demo notes, kept as close to verbatim as
+  // possible — note1/note3 are untouched; note2 is untouched. Everything
+  // they originally supported (John, Sarah, Jayden's existing insights, and
+  // the self-insights below) stays intact.
   const note1 = randomUUID();
   const note2 = randomUUID();
   const note3 = randomUUID();
@@ -194,7 +203,7 @@ async function main() {
       id: noteGiselle1,
       workspace_id: DEMO_WORKSPACE_ID,
       raw_content:
-        "1:1 with Giselle today. She's sharp - picked up on the resourcing gap before I even got to it, and asked straight away 'can I understand how your team works?' When I started walking through it top-down she cut in: 'as a lead, you need to lead - guide the discussion and ask the right questions', wanted me driving the conversation, not waiting for her to pull it out of me. Straight to the point throughout, no going in circles, but she clocked how tense the room got and named it before moving on. Near the end: 'can you walk me through how your team is handling this?'",
+        "1:1 with Giselle today. She's sharp - picked up on the resourcing gap before I even got to it, and asked straight away 'can I understand how your team works?' When I started walking through it top-down she cut in: 'as a lead, you need to lead - guide the discussion and ask the right questions', wanted me driving the conversation, not waiting for her to pull it out of me. She also asked what my approach was moving forward. Straight to the point throughout, no going in circles, but she clocked how tense the room got and named it before moving on. Near the end: 'can you walk me through how your team is handling this?'",
       context_summary: "Giselle expects the lead to drive the conversation, not wait to be asked.",
       created_at: "2026-07-18T09:00:00Z",
     },
@@ -367,117 +376,706 @@ async function main() {
 
   // Giselle — Direct boss
   addPersonInsights(giselle, [
-    { type: "general", content: "Very observant and quick-thinking — picks up on both the issue and how people are reacting.", confidence: "high", isInferred: false, noteId: noteGiselle1 },
-    { type: "general", content: "Straight to the point and doesn't like going in circles.", confidence: "high", isInferred: false, noteId: noteGiselle1 },
-    { type: "communication", content: "Get to the point quickly — she doesn't like circling back.", confidence: "high", isInferred: false, noteId: noteGiselle1 },
-    { type: "communication", content: "Show your thinking, not just an update — be ready to explain how you arrived at your recommendation.", confidence: "high", isInferred: false, noteId: noteGiselle2 },
-    { type: "communication", content: "If you're leading the work, actively guide the discussion rather than waiting for her to drive it.", confidence: "high", isInferred: false, noteId: noteGiselle1 },
-    { type: "likely_questions", content: "Can I understand how your team works?", confidence: "high", isInferred: false, noteId: noteGiselle1 },
-    { type: "likely_questions", content: "What is your approach moving forward?", confidence: "high", isInferred: false, noteId: noteGiselle1 },
-    { type: "likely_questions", content: "Can you walk me through how your team is handling this?", confidence: "high", isInferred: false, noteId: noteGiselle1 },
-    { type: "likely_questions", content: "Why did you choose this approach?", confidence: "medium", isInferred: true, noteId: noteGiselle2 },
-    { type: "approach", content: "Come prepared to explain your reasoning, not just the outcome, and take ownership of guiding the conversation.", confidence: "medium", isInferred: true, noteId: noteGiselle1 },
+    {
+      type: "general",
+      content: "Very observant and quick-thinking — picks up on both the issue and how people are reacting.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle1,
+      quote: "She's sharp - picked up on the resourcing gap before I even got to it, and asked straight away 'can I understand how your team works?'",
+    },
+    {
+      type: "general",
+      content: "Straight to the point and doesn't like going in circles.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle1,
+      quote: "Straight to the point throughout, no going in circles, but she clocked how tense the room got and named it before moving on.",
+    },
+    {
+      type: "communication",
+      content: "Get to the point quickly — she doesn't like circling back.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle1,
+      quote: "Straight to the point throughout, no going in circles, but she clocked how tense the room got and named it before moving on.",
+    },
+    {
+      type: "communication",
+      content: "Show your thinking, not just an update — be ready to explain how you arrived at your recommendation.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle2,
+      quote: "She kept the questions coming - 'why did you choose this approach' and 'what are you recommending' - and expected me to already have a point of view rather than present options and wait for her to pick one.",
+    },
+    {
+      type: "communication",
+      content: "If you're leading the work, actively guide the discussion rather than waiting for her to drive it.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle1,
+      quote: "When I started walking through it top-down she cut in: 'as a lead, you need to lead - guide the discussion and ask the right questions', wanted me driving the conversation, not waiting for her to pull it out of me.",
+    },
+    {
+      type: "likely_questions",
+      content: "Can I understand how your team works?",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle1,
+      quote: "She's sharp - picked up on the resourcing gap before I even got to it, and asked straight away 'can I understand how your team works?'",
+    },
+    {
+      type: "likely_questions",
+      content: "What is your approach moving forward?",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle1,
+      quote: "She also asked what my approach was moving forward.",
+    },
+    {
+      type: "likely_questions",
+      content: "Can you walk me through how your team is handling this?",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGiselle1,
+      quote: "Near the end: 'can you walk me through how your team is handling this?'",
+    },
+    {
+      type: "likely_questions",
+      content: "Why did you choose this approach?",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteGiselle2,
+      quote: "She kept the questions coming - 'why did you choose this approach' and 'what are you recommending' - and expected me to already have a point of view rather than present options and wait for her to pick one.",
+    },
+    {
+      type: "approach",
+      content: "Come prepared to explain your reasoning, not just the outcome, and take ownership of guiding the conversation.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteGiselle1,
+      quote: "When I started walking through it top-down she cut in: 'as a lead, you need to lead - guide the discussion and ask the right questions', wanted me driving the conversation, not waiting for her to pull it out of me.",
+    },
   ]);
 
   // Lydia — Upper management
   addPersonInsights(lydia, [
-    { type: "general", content: "Smart and straightforward, but doesn't put people down unnecessarily.", confidence: "high", isInferred: false, noteId: noteLydia2 },
-    { type: "general", content: "Notices when someone tries to shift blame onto someone else.", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "general", content: "Probes issues rather than accepting a surface-level explanation.", confidence: "medium", isInferred: true, noteId: noteLydia1 },
-    { type: "cares_about", content: "Understanding the facts behind an issue.", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "cares_about", content: "Well-researched recommendations that compare what other organisations have done.", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "cares_about", content: "Clear communication without unnecessary jargon.", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "likely_questions", content: "What exactly happened?", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "likely_questions", content: "What have others done?", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "likely_questions", content: "What evidence supports this?", confidence: "medium", isInferred: true, noteId: noteLydia1 },
-    { type: "communication", content: "Prepare the details — she will ask for them.", confidence: "high", isInferred: false, noteId: noteLydia2 },
-    { type: "communication", content: "Compare against relevant external examples where useful.", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "communication", content: "Use simple, precise language — skip the jargon.", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "avoid", content: "Using big words that add no meaning.", confidence: "high", isInferred: false, noteId: noteLydia1 },
-    { type: "avoid", content: "Giving an answer without doing the homework.", confidence: "high", isInferred: false, noteId: noteLydia2 },
-    { type: "avoid", content: "Blaming another person without explaining the facts.", confidence: "high", isInferred: false, noteId: noteLydia1 },
+    {
+      type: "general",
+      content: "Smart and straightforward, but doesn't put people down unnecessarily.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia2,
+      quote: "Still direct about the gaps, but didn't make it personal - she just wants it fixed.",
+    },
+    {
+      type: "general",
+      content: "Notices when someone tries to shift blame onto someone else.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "She noticed two leads were quietly pointing fingers at Cayden's team and shut that down fast - wanted the actual facts before anyone assigned blame.",
+    },
+    {
+      type: "general",
+      content: "Probes issues rather than accepting a surface-level explanation.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteLydia1,
+      quote: "Kept pushing: what exactly happened, what's causing it, what have other teams done in a similar spot.",
+    },
+    {
+      type: "cares_about",
+      content: "Understanding the facts behind an issue.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "Kept pushing: what exactly happened, what's causing it, what have other teams done in a similar spot.",
+    },
+    {
+      type: "cares_about",
+      content: "Well-researched recommendations that compare what other organisations have done.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "She wants comparisons, not just our own read.",
+    },
+    {
+      type: "cares_about",
+      content: "Clear communication without unnecessary jargon.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "Zero patience for jargon either - when someone said 'operationalise the framework,' she just asked them to say it in plain English.",
+    },
+    {
+      type: "likely_questions",
+      content: "What exactly happened?",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "Kept pushing: what exactly happened, what's causing it, what have other teams done in a similar spot.",
+    },
+    {
+      type: "likely_questions",
+      content: "What have others done?",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "She wants comparisons, not just our own read.",
+    },
+    {
+      type: "likely_questions",
+      content: "What evidence supports this?",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteLydia1,
+      quote: "Kept pushing: what exactly happened, what's causing it, what have other teams done in a similar spot.",
+    },
+    {
+      type: "communication",
+      content: "Prepare the details — she will ask for them.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia2,
+      quote: "Prepped for Lydia's review properly this time - pulled two comparable examples before going in.",
+    },
+    {
+      type: "communication",
+      content: "Compare against relevant external examples where useful.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "She wants comparisons, not just our own read.",
+    },
+    {
+      type: "communication",
+      content: "Use simple, precise language — skip the jargon.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "Zero patience for jargon either - when someone said 'operationalise the framework,' she just asked them to say it in plain English.",
+    },
+    {
+      type: "avoid",
+      content: "Using big words that add no meaning.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "Zero patience for jargon either - when someone said 'operationalise the framework,' she just asked them to say it in plain English.",
+    },
+    {
+      type: "avoid",
+      content: "Giving an answer without doing the homework.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia2,
+      quote: "She clearly noticed the difference: didn't have to ask me to go back and do the homework like last time.",
+    },
+    {
+      type: "avoid",
+      content: "Blaming another person without explaining the facts.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLydia1,
+      quote: "She noticed two leads were quietly pointing fingers at Cayden's team and shut that down fast - wanted the actual facts before anyone assigned blame.",
+    },
   ]);
 
   // Sarah — Peer (existing insights kept, new ones added for the Peer use case)
   addPersonInsights(sarah, [
-    { type: "cares_about", content: "Manpower and resourcing constraints for upcoming sprints.", confidence: "high", isInferred: true, noteId: note1 },
-    { type: "communication", content: "Opens up in more detail one-on-one; more reserved when John is in the room.", confidence: "medium", isInferred: true, noteId: note2 },
-    { type: "general", content: "Reads the room before speaking up — waits to see how others react first.", confidence: "low", isInferred: true, noteId: note2 },
-    { type: "general", content: "Good at translating operational concerns into practical next steps.", confidence: "medium", isInferred: true, noteId: noteSarahCayden },
-    { type: "approach", content: "Give her space to think before responding — she opens up more once there's room to talk through concerns rather than being put on the spot.", confidence: "medium", isInferred: true, noteId: note2 },
+    {
+      type: "cares_about",
+      content: "Manpower and resourcing constraints for upcoming sprints.",
+      confidence: "high",
+      isInferred: true,
+      noteId: note1,
+      quote: "Sarah was quiet until John left, then flagged she's worried about manpower for next sprint.",
+    },
+    {
+      type: "communication",
+      content: "Opens up in more detail one-on-one; more reserved when John is in the room.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: note2,
+      quote: "She was much more detailed and open about the resourcing gap now that John wasn't in the room.",
+    },
+    {
+      type: "general",
+      content: "Reads the room before speaking up — waits to see how others react first.",
+      confidence: "low",
+      isInferred: true,
+      noteId: note2,
+      quote: "She was much more detailed and open about the resourcing gap now that John wasn't in the room.",
+    },
+    {
+      type: "general",
+      content: "Good at translating operational concerns into practical next steps.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteSarahCayden,
+      quote: "Sarah flagged the resourcing gap to Cayden again today, but this time she came with a proposal - cut scope on two workstreams for two weeks rather than just naming the problem.",
+    },
+    {
+      type: "approach",
+      content: "Give her space to think before responding — she opens up more once there's room to talk through concerns rather than being put on the spot.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: note2,
+      quote: "She was much more detailed and open about the resourcing gap now that John wasn't in the room.",
+    },
   ]);
 
   // Jayden — Subordinate
   addPersonInsights(jayden, [
-    { type: "general", content: "Capable and eager to do well.", confidence: "high", isInferred: false, noteId: noteJayden1 },
-    { type: "general", content: "Sometimes moves quickly before checking whether expectations are clear.", confidence: "high", isInferred: false, noteId: noteJayden1 },
-    { type: "general", content: "Comfortable admitting when something is unclear.", confidence: "high", isInferred: false, noteId: noteJayden1 },
-    { type: "general", content: "Improves quickly when feedback is specific.", confidence: "medium", isInferred: true, noteId: noteJayden2 },
-    { type: "approach", content: "Explain the intent, not just the task.", confidence: "medium", isInferred: true, noteId: noteJayden1 },
-    { type: "approach", content: "Be specific about what good looks like.", confidence: "medium", isInferred: true, noteId: noteJayden2 },
-    { type: "approach", content: "Let him attempt the problem before stepping in.", confidence: "medium", isInferred: true, noteId: noteJayden1 },
-    { type: "approach", content: "Give feedback on the reasoning, not only the final output.", confidence: "medium", isInferred: true, noteId: noteJayden2 },
+    {
+      type: "general",
+      content: "Capable and eager to do well.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteJayden1,
+      quote: "Jayden picked up the automation task and ran with it immediately - didn't wait around, which I like, but he'd built half of it before checking the actual requirements with me, so some of it had to be redone.",
+    },
+    {
+      type: "general",
+      content: "Sometimes moves quickly before checking whether expectations are clear.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteJayden1,
+      quote: "Jayden picked up the automation task and ran with it immediately - didn't wait around, which I like, but he'd built half of it before checking the actual requirements with me, so some of it had to be redone.",
+    },
+    {
+      type: "general",
+      content: "Comfortable admitting when something is unclear.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteJayden1,
+      quote: "When I walked him through what I actually needed, he got it fast and course-corrected without getting defensive - actually said upfront 'oh I wasn't sure about that part, should've asked.'",
+    },
+    {
+      type: "general",
+      content: "Improves quickly when feedback is specific.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteJayden2,
+      quote: "Huge difference in the next version; he applied it correctly across the board without me having to repeat it.",
+    },
+    {
+      type: "approach",
+      content: "Explain the intent, not just the task.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteJayden1,
+      quote: "Jayden picked up the automation task and ran with it immediately - didn't wait around, which I like, but he'd built half of it before checking the actual requirements with me, so some of it had to be redone.",
+    },
+    {
+      type: "approach",
+      content: "Be specific about what good looks like.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteJayden2,
+      quote: "Gave Jayden more specific feedback this round - not just 'fix the edge cases' but walked through why each one mattered.",
+    },
+    {
+      type: "approach",
+      content: "Let him attempt the problem before stepping in.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteJayden1,
+      quote: "Jayden picked up the automation task and ran with it immediately - didn't wait around, which I like, but he'd built half of it before checking the actual requirements with me, so some of it had to be redone.",
+    },
+    {
+      type: "approach",
+      content: "Give feedback on the reasoning, not only the final output.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteJayden2,
+      quote: "Gave Jayden more specific feedback this round - not just 'fix the edge cases' but walked through why each one mattered.",
+    },
   ]);
 
   // Cayden — Stakeholder, the richest profile in the demo on purpose
   addPersonInsights(cayden, [
-    { type: "general", content: "Influential, straightforward and willing to challenge the norm.", confidence: "high", isInferred: false, noteId: noteCayden4 },
-    { type: "general", content: "Prefers complete, end-to-end thinking over fragmented delivery.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "general", content: "Has high standards for preparation and staff work.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "general", content: "Values trust and loyalty strongly.", confidence: "high", isInferred: false, noteId: noteCayden2 },
-    { type: "general", content: "Pushes people to exercise judgement rather than follow instructions blindly.", confidence: "high", isInferred: false, noteId: noteCayden4 },
-    { type: "cares_about", content: "Trust and loyalty.", confidence: "high", isInferred: false, noteId: noteCayden2 },
-    { type: "cares_about", content: "Internal teams presenting a united front.", confidence: "high", isInferred: false, noteId: noteCayden2 },
-    { type: "cares_about", content: "Complete delivery rather than unnecessary fragmentation.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "cares_about", content: "Good staff work and preparation.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "cares_about", content: "Being consulted early on agendas and key POCs.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "communication", content: "Use numbered points instead of bullets, with spacing between them so he can refer back easily.", confidence: "high", isInferred: false, noteId: noteCayden3 },
-    { type: "communication", content: "Keep emails short and scannable — put useful information directly in the email rather than an attachment.", confidence: "high", isInferred: false, noteId: noteCayden3 },
-    { type: "communication", content: "Use tables when they make information easier to scan.", confidence: "high", isInferred: false, noteId: noteCayden3 },
-    { type: "communication", content: "Consult him on important agendas and POCs before meetings.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "communication", content: "Show the complete flow rather than isolated fragments.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "likely_questions", content: "Why are we splitting this into phases?", confidence: "medium", isInferred: true, noteId: noteCayden4 },
-    { type: "likely_questions", content: "Why can't we complete the whole flow?", confidence: "medium", isInferred: true, noteId: noteCayden4 },
-    { type: "likely_questions", content: "Who has been consulted?", confidence: "medium", isInferred: true, noteId: noteCayden1 },
-    { type: "likely_questions", content: "Is there a better way?", confidence: "medium", isInferred: true, noteId: noteCayden4 },
-    { type: "avoid", content: "Using the term \"baseline requirements.\"", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "avoid", content: "Breaking his trust.", confidence: "high", isInferred: false, noteId: noteCayden2 },
-    { type: "avoid", content: "Internal teams publicly blaming each other.", confidence: "high", isInferred: false, noteId: noteCayden2 },
-    { type: "avoid", content: "Long emails.", confidence: "high", isInferred: false, noteId: noteCayden3 },
-    { type: "avoid", content: "Unnecessary attachments.", confidence: "high", isInferred: false, noteId: noteCayden3 },
-    { type: "avoid", content: "Fragmenting one flow across too many sessions.", confidence: "high", isInferred: false, noteId: noteCayden1 },
-    { type: "avoid", content: "Blindly following an instruction when it clearly doesn't make sense.", confidence: "high", isInferred: false, noteId: noteCayden4 },
+    {
+      type: "general",
+      content: "Influential, straightforward and willing to challenge the norm.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden4,
+      quote: "Cayden challenged the whole approach in today's session - asked why we were following the old process when it clearly didn't fit anymore, and pushed the team to actually think it through instead of just doing what the doc said.",
+    },
+    {
+      type: "general",
+      content: "Prefers complete, end-to-end thinking over fragmented delivery.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Also made clear he doesn't want this delivered in two phases if it can be done as one complete flow - said splitting it up just creates more handover risk.",
+    },
+    {
+      type: "general",
+      content: "Has high standards for preparation and staff work.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Minutes came back to me twice for corrections afterwards - he's particular about staff work and wants it accurate the first time.",
+    },
+    {
+      type: "general",
+      content: "Values trust and loyalty strongly.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden2,
+      quote: "He's clearly someone who values loyalty; when I mentioned a teammate had covered for someone under pressure, he nodded and said trust matters more to him than almost anything else here.",
+    },
+    {
+      type: "general",
+      content: "Pushes people to exercise judgement rather than follow instructions blindly.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden4,
+      quote: "He's the type who'll ask 'is there a better way' before accepting 'that's how we've always done it.'",
+    },
+    {
+      type: "cares_about",
+      content: "Trust and loyalty.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden2,
+      quote: "He's clearly someone who values loyalty; when I mentioned a teammate had covered for someone under pressure, he nodded and said trust matters more to him than almost anything else here.",
+    },
+    {
+      type: "cares_about",
+      content: "Internal teams presenting a united front.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden2,
+      quote: "Cayden was blunt today when two of our leads seemed to be quietly blaming each other in front of him - said he doesn't want to see that again, wants a united front.",
+    },
+    {
+      type: "cares_about",
+      content: "Complete delivery rather than unnecessary fragmentation.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Also made clear he doesn't want this delivered in two phases if it can be done as one complete flow - said splitting it up just creates more handover risk.",
+    },
+    {
+      type: "cares_about",
+      content: "Good staff work and preparation.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Minutes came back to me twice for corrections afterwards - he's particular about staff work and wants it accurate the first time.",
+    },
+    {
+      type: "cares_about",
+      content: "Being consulted early on agendas and key POCs.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Wants to be consulted on the agenda and the key POCs before the actual meeting, not surprised on the day.",
+    },
+    {
+      type: "communication",
+      content: "Use numbered points instead of bullets, with spacing between them so he can refer back easily.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden3,
+      quote: "He'd rather I use numbered points instead of bullets too, with space between them, so he can reference '#3' in a reply instead of re-describing it.",
+    },
+    {
+      type: "communication",
+      content: "Keep emails short and scannable — put useful information directly in the email rather than an attachment.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden3,
+      quote: "Sent Cayden the weekly update as a long email with two attachments - he came back annoyed, said he doesn't read past what fits on one screen and to just put the important stuff directly in the email next time, a table if it helps him scan it.",
+    },
+    {
+      type: "communication",
+      content: "Use tables when they make information easier to scan.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden3,
+      quote: "Sent Cayden the weekly update as a long email with two attachments - he came back annoyed, said he doesn't read past what fits on one screen and to just put the important stuff directly in the email next time, a table if it helps him scan it.",
+    },
+    {
+      type: "communication",
+      content: "Consult him on important agendas and POCs before meetings.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Wants to be consulted on the agenda and the key POCs before the actual meeting, not surprised on the day.",
+    },
+    {
+      type: "communication",
+      content: "Show the complete flow rather than isolated fragments.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Also made clear he doesn't want this delivered in two phases if it can be done as one complete flow - said splitting it up just creates more handover risk.",
+    },
+    {
+      type: "likely_questions",
+      content: "Why are we splitting this into phases?",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteCayden1,
+      quote: "Also made clear he doesn't want this delivered in two phases if it can be done as one complete flow - said splitting it up just creates more handover risk.",
+    },
+    {
+      type: "likely_questions",
+      content: "Why can't we complete the whole flow?",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteCayden1,
+      quote: "Also made clear he doesn't want this delivered in two phases if it can be done as one complete flow - said splitting it up just creates more handover risk.",
+    },
+    {
+      type: "likely_questions",
+      content: "Who has been consulted?",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteCayden1,
+      quote: "Wants to be consulted on the agenda and the key POCs before the actual meeting, not surprised on the day.",
+    },
+    {
+      type: "likely_questions",
+      content: "Is there a better way?",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteCayden4,
+      quote: "He's the type who'll ask 'is there a better way' before accepting 'that's how we've always done it.'",
+    },
+    {
+      type: "avoid",
+      content: "Using the term \"baseline requirements.\"",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "He pushed back hard on 'baseline requirements' - said the phrase makes it sound like the bare minimum instead of what's actually needed, asked us to just describe the real requirement.",
+    },
+    {
+      type: "avoid",
+      content: "Breaking his trust.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden2,
+      quote: "He's clearly someone who values loyalty; when I mentioned a teammate had covered for someone under pressure, he nodded and said trust matters more to him than almost anything else here.",
+    },
+    {
+      type: "avoid",
+      content: "Internal teams publicly blaming each other.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden2,
+      quote: "Cayden was blunt today when two of our leads seemed to be quietly blaming each other in front of him - said he doesn't want to see that again, wants a united front.",
+    },
+    {
+      type: "avoid",
+      content: "Long emails.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden3,
+      quote: "Sent Cayden the weekly update as a long email with two attachments - he came back annoyed, said he doesn't read past what fits on one screen and to just put the important stuff directly in the email next time, a table if it helps him scan it.",
+    },
+    {
+      type: "avoid",
+      content: "Unnecessary attachments.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden3,
+      quote: "Sent Cayden the weekly update as a long email with two attachments - he came back annoyed, said he doesn't read past what fits on one screen and to just put the important stuff directly in the email next time, a table if it helps him scan it.",
+    },
+    {
+      type: "avoid",
+      content: "Fragmenting one flow across too many sessions.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Also made clear he doesn't want this delivered in two phases if it can be done as one complete flow - said splitting it up just creates more handover risk.",
+    },
+    {
+      type: "avoid",
+      content: "Blindly following an instruction when it clearly doesn't make sense.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden4,
+      quote: "Cayden challenged the whole approach in today's session - asked why we were following the old process when it clearly didn't fit anymore, and pushed the team to actually think it through instead of just doing what the doc said.",
+    },
+    {
+      type: "approach",
+      content: "Consult him on meeting agendas and points of contact before meetings take place — don't surprise him on the day.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteCayden1,
+      quote: "Wants to be consulted on the agenda and the key POCs before the actual meeting, not surprised on the day.",
+    },
   ]);
 
   // Lionel — Vendor
   addPersonInsights(lionel, [
-    { type: "general", content: "Friendly, presents clearly and has good presence.", confidence: "high", isInferred: false, noteId: noteLionel1 },
-    { type: "general", content: "Uses humour naturally when he's unsure about something.", confidence: "high", isInferred: false, noteId: noteLionel1 },
-    { type: "general", content: "Reads stakeholder dynamics and deliberately builds rapport with key influencers.", confidence: "medium", isInferred: true, noteId: noteLionel2 },
-    { type: "communication", content: "Confirm whether the proposed understanding is aligned before moving forward.", confidence: "high", isInferred: false, noteId: noteLionel1 },
-    { type: "communication", content: "Engage him in discussions rather than treating him only as a presenter.", confidence: "medium", isInferred: true, noteId: noteLionel1 },
+    {
+      type: "general",
+      content: "Friendly, presents clearly and has good presence.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLionel1,
+      quote: "Lionel ran the workshop today - really easy to follow, checked in constantly: 'I've talked a lot, any questions so far?' and 'everyone able to follow me so far?'",
+    },
+    {
+      type: "general",
+      content: "Uses humour naturally when he's unsure about something.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLionel1,
+      quote: "Used humour when he clearly wasn't 100% sure of an answer, which actually worked, took the pressure off.",
+    },
+    {
+      type: "general",
+      content: "Reads stakeholder dynamics and deliberately builds rapport with key influencers.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteLionel2,
+      quote: "Noticed Lionel spends the first ten minutes of any new client meeting just watching who talks, who gets deferred to, who everyone looks at before agreeing.",
+    },
+    {
+      type: "communication",
+      content: "Confirm whether the proposed understanding is aligned before moving forward.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteLionel1,
+      quote: "Ended with 'from my understanding, this is the direction - is that aligned to your vision?' before moving on, which I appreciated.",
+    },
+    {
+      type: "communication",
+      content: "Engage him in discussions rather than treating him only as a presenter.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteLionel1,
+      quote: "Lionel ran the workshop today - really easy to follow, checked in constantly: 'I've talked a lot, any questions so far?' and 'everyone able to follow me so far?'",
+    },
   ]);
 
   // Gordon — Vendor (phrased in observable, non-judgmental terms throughout)
   addPersonInsights(gordon, [
-    { type: "general", content: "Tends to over-explain — can make simple topics hard to follow.", confidence: "high", isInferred: false, noteId: noteGordon1 },
-    { type: "general", content: "Sometimes agrees quickly with feedback without it always sticking in the next update.", confidence: "medium", isInferred: true, noteId: noteGordon1 },
-    { type: "general", content: "Sometimes brings internal team tension into client discussions.", confidence: "high", isInferred: false, noteId: noteGordon2 },
-    { type: "general", content: "Frequently highlights how much work he's personally contributed.", confidence: "high", isInferred: false, noteId: noteGordon2 },
-    { type: "communication", content: "Ask him to summarise the main point first.", confidence: "medium", isInferred: true, noteId: noteGordon1 },
-    { type: "communication", content: "Confirm specific actions at the end of a discussion, ideally in writing.", confidence: "medium", isInferred: true, noteId: noteGordon1 },
-    { type: "avoid", content: "Assuming verbal agreement means the feedback has been fully understood.", confidence: "medium", isInferred: true, noteId: noteGordon1 },
-    { type: "avoid", content: "Letting internal vendor disagreements dominate the client conversation.", confidence: "medium", isInferred: true, noteId: noteGordon2 },
+    {
+      type: "general",
+      content: "Tends to over-explain — can make simple topics hard to follow.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGordon1,
+      quote: "Gordon's explanation of the integration issue ran twenty minutes for something that should've taken five - by the end half the room had lost the thread on what was actually a simple fix.",
+    },
+    {
+      type: "general",
+      content: "Sometimes agrees quickly with feedback without it always sticking in the next update.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteGordon1,
+      quote: "When I gave him feedback on trimming it down, he agreed on the spot, but the next update was just as long again.",
+    },
+    {
+      type: "general",
+      content: "Sometimes brings internal team tension into client discussions.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGordon2,
+      quote: "Client call got awkward when Gordon brought up a disagreement with his own teammate mid-presentation - not the place for it.",
+    },
+    {
+      type: "general",
+      content: "Frequently highlights how much work he's personally contributed.",
+      confidence: "high",
+      isInferred: false,
+      noteId: noteGordon2,
+      quote: "He also mentioned, unprompted, how much of the work he'd personally done on this phase, a few times.",
+    },
+    {
+      type: "communication",
+      content: "Ask him to summarise the main point first.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteGordon1,
+      quote: "Gordon's explanation of the integration issue ran twenty minutes for something that should've taken five - by the end half the room had lost the thread on what was actually a simple fix.",
+    },
+    {
+      type: "communication",
+      content: "Confirm specific actions at the end of a discussion, ideally in writing.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteGordon1,
+      quote: "When I gave him feedback on trimming it down, he agreed on the spot, but the next update was just as long again.",
+    },
+    {
+      type: "avoid",
+      content: "Assuming verbal agreement means the feedback has been fully understood.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteGordon1,
+      quote: "When I gave him feedback on trimming it down, he agreed on the spot, but the next update was just as long again.",
+    },
+    {
+      type: "avoid",
+      content: "Letting internal vendor disagreements dominate the client conversation.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: noteGordon2,
+      quote: "Client call got awkward when Gordon brought up a disagreement with his own teammate mid-presentation - not the place for it.",
+    },
   ]);
 
   // John — Upper management (kept exactly as the original demo had it)
   addPersonInsights(john, [
-    { type: "cares_about", content: "Delivery risk and downstream impact of any delay.", confidence: "high", isInferred: true, noteId: note1 },
-    { type: "communication", content: "Wants downstream impact addressed before anything else. Settles once a mitigation plan is shown.", confidence: "high", isInferred: true, noteId: note1 },
-    { type: "likely_questions", content: "What's the downstream impact, and what's the mitigation plan?", confidence: "high", isInferred: true, noteId: note1 },
-    { type: "avoid", content: "Don't lead with excuses or background before addressing impact.", confidence: "medium", isInferred: true, noteId: note1 },
-    { type: "approach", content: "Lead with impact and the mitigation plan. Keep background for after.", confidence: "medium", isInferred: true, noteId: note1 },
-    { type: "general", content: "Stays calm and measured even when pushing hard on a point.", confidence: "medium", isInferred: true, noteId: note1 },
+    {
+      type: "cares_about",
+      content: "Delivery risk and downstream impact of any delay.",
+      confidence: "high",
+      isInferred: true,
+      noteId: note1,
+      quote: "John kept pushing on downstream impact and wouldn't let up until I showed the mitigation plan - then he was fine.",
+    },
+    {
+      type: "communication",
+      content: "Wants downstream impact addressed before anything else. Settles once a mitigation plan is shown.",
+      confidence: "high",
+      isInferred: true,
+      noteId: note1,
+      quote: "John kept pushing on downstream impact and wouldn't let up until I showed the mitigation plan - then he was fine.",
+    },
+    {
+      type: "likely_questions",
+      content: "What's the downstream impact, and what's the mitigation plan?",
+      confidence: "high",
+      isInferred: true,
+      noteId: note1,
+      quote: "John kept pushing on downstream impact and wouldn't let up until I showed the mitigation plan - then he was fine.",
+    },
+    {
+      type: "avoid",
+      content: "Don't lead with excuses or background before addressing impact.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: note1,
+      quote: "John kept pushing on downstream impact and wouldn't let up until I showed the mitigation plan - then he was fine.",
+    },
+    {
+      type: "approach",
+      content: "Lead with impact and the mitigation plan. Keep background for after.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: note1,
+      quote: "John kept pushing on downstream impact and wouldn't let up until I showed the mitigation plan - then he was fine.",
+    },
+    {
+      type: "general",
+      content: "Stays calm and measured even when pushing hard on a point.",
+      confidence: "medium",
+      isInferred: true,
+      noteId: note1,
+      quote: "Room felt tense whenever the timeline came up.",
+    },
   ]);
   if (personInsightRows.length > 0) {
     const { error } = await supabase.from("person_insights").insert(personInsightRows);
@@ -500,7 +1098,8 @@ async function main() {
     confidence: Confidence,
     isInferred: boolean,
     relationshipType: "reports_to" | "influences" | "works_closely_with" | null,
-    noteId: string
+    noteId: string,
+    quote: string
   ) {
     const id = randomUUID();
     relationshipRows.push({
@@ -513,7 +1112,7 @@ async function main() {
       is_inferred: isInferred,
       relationship_type: relationshipType,
     });
-    relationshipEvidenceRows.push({ relationship_insight_id: id, note_id: noteId });
+    relationshipEvidenceRows.push({ relationship_insight_id: id, note_id: noteId, quote });
   }
 
   addRelationship(
@@ -523,7 +1122,8 @@ async function main() {
     "medium",
     true,
     "influences",
-    note1
+    note1,
+    "Sarah was quiet until John left, then flagged she's worried about manpower for next sprint."
   );
   // Jayden is person_a here (not John) because relationship_type: "influences"
   // means person_a influences person_b — it's Jayden's presence that changes
@@ -535,7 +1135,8 @@ async function main() {
     "low",
     true,
     "influences",
-    note3
+    note3,
+    "Noticed John was noticeably more careful with his numbers and double-checked everything before Jayden arrived."
   );
   addRelationship(
     giselle,
@@ -544,7 +1145,8 @@ async function main() {
     "medium",
     true,
     "influences",
-    noteGiseldeCayden
+    noteGiseldeCayden,
+    "Cayden pushed back hard on the proposal until I mentioned Giselle had already signed off on the direction - visibly changed his tone after that, said if she's comfortable with it, he is too."
   );
   addRelationship(
     cayden,
@@ -553,7 +1155,8 @@ async function main() {
     "medium",
     false,
     "influences",
-    noteLionel2
+    noteLionel2,
+    "He clearly clocked that Cayden and Giselle carry more weight in the room and has been deliberately checking in with them directly since, even outside the main sessions."
   );
   addRelationship(
     giselle,
@@ -562,7 +1165,8 @@ async function main() {
     "medium",
     false,
     "influences",
-    noteLionel2
+    noteLionel2,
+    "He clearly clocked that Cayden and Giselle carry more weight in the room and has been deliberately checking in with them directly since, even outside the main sessions."
   );
   addRelationship(
     lydia,
@@ -571,7 +1175,8 @@ async function main() {
     "medium",
     true,
     null,
-    noteLydia1
+    noteLydia1,
+    "She noticed two leads were quietly pointing fingers at Cayden's team and shut that down fast - wanted the actual facts before anyone assigned blame."
   );
   addRelationship(
     sarah,
@@ -580,7 +1185,8 @@ async function main() {
     "medium",
     true,
     "influences",
-    noteSarahCayden
+    noteSarahCayden,
+    "Once we had room to actually talk it through instead of it being a surprise in the room, she was much clearer about the tradeoffs and walked us through a practical next step."
   );
   addRelationship(
     giselle,
@@ -589,7 +1195,8 @@ async function main() {
     "medium",
     false,
     "influences",
-    noteGiseldeSarah
+    noteGiseldeSarah,
+    "Giselle pulled Sarah aside after the sync - told her she has good instincts and should stop waiting to be asked, just say what she thinks and steer the conversation herself next time."
   );
   addRelationship(
     lionel,
@@ -598,7 +1205,8 @@ async function main() {
     "medium",
     true,
     "works_closely_with",
-    noteLionelGordon
+    noteLionelGordon,
+    "Lionel kept trying to simplify the explanation down to the actual decision needed, while Gordon kept adding detail and caveats."
   );
 
   const { error: relError } = await supabase.from("relationship_insights").insert(relationshipRows);
@@ -617,6 +1225,7 @@ async function main() {
     theme: "Communication",
     isInferred: false,
     noteId: noteJayden1,
+    quote: "When I walked him through what I actually needed, he got it fast and course-corrected without getting defensive - actually said upfront 'oh I wasn't sure about that part, should've asked.'",
   });
   addLesson({
     title: "Buy time clearly.",
@@ -624,6 +1233,7 @@ async function main() {
     theme: "Communication",
     isInferred: false,
     noteId: noteLydia1,
+    quote: "Kept pushing: what exactly happened, what's causing it, what have other teams done in a similar spot.",
   });
   addLesson({
     title: "Disagree respectfully.",
@@ -631,6 +1241,7 @@ async function main() {
     theme: "Communication",
     isInferred: false,
     noteId: noteCayden4,
+    quote: "Cayden challenged the whole approach in today's session - asked why we were following the old process when it clearly didn't fit anymore, and pushed the team to actually think it through instead of just doing what the doc said.",
   });
   addLesson({
     title: "Ask for the other person's view first.",
@@ -638,6 +1249,7 @@ async function main() {
     theme: "Communication",
     isInferred: false,
     noteId: noteGiselle2,
+    quote: "She kept the questions coming - 'why did you choose this approach' and 'what are you recommending' - and expected me to already have a point of view rather than present options and wait for her to pick one.",
   });
   addLesson({
     title: "Make information easy to reference.",
@@ -645,6 +1257,7 @@ async function main() {
     theme: "Communication",
     isInferred: true,
     noteId: noteCayden3,
+    quote: "He'd rather I use numbered points instead of bullets too, with space between them, so he can reference '#3' in a reply instead of re-describing it.",
     relatedPersonIds: [cayden],
   });
   addLesson({
@@ -654,6 +1267,7 @@ async function main() {
     theme: "Communication",
     isInferred: true,
     noteId: noteLionel1,
+    quote: "Lionel ran the workshop today - really easy to follow, checked in constantly: 'I've talked a lot, any questions so far?' and 'everyone able to follow me so far?'",
     relatedPersonIds: [lionel],
   });
 
@@ -665,6 +1279,7 @@ async function main() {
     theme: "Leadership",
     isInferred: false,
     noteId: noteCayden2,
+    quote: "Cayden was blunt today when two of our leads seemed to be quietly blaming each other in front of him - said he doesn't want to see that again, wants a united front.",
   });
   addLesson({
     title: "Lead the discussion.",
@@ -672,6 +1287,7 @@ async function main() {
     theme: "Leadership",
     isInferred: false,
     noteId: noteGiselle1,
+    quote: "When I started walking through it top-down she cut in: 'as a lead, you need to lead - guide the discussion and ask the right questions', wanted me driving the conversation, not waiting for her to pull it out of me.",
     relatedPersonIds: [giselle],
   });
   addLesson({
@@ -680,6 +1296,7 @@ async function main() {
     theme: "Leadership",
     isInferred: true,
     noteId: noteLionel1,
+    quote: "Lionel ran the workshop today - really easy to follow, checked in constantly: 'I've talked a lot, any questions so far?' and 'everyone able to follow me so far?'",
   });
   addLesson({
     title: "Challenge inefficient norms instead of accepting them automatically.",
@@ -687,6 +1304,7 @@ async function main() {
     theme: "Leadership",
     isInferred: true,
     noteId: noteCayden4,
+    quote: "Cayden challenged the whole approach in today's session - asked why we were following the old process when it clearly didn't fit anymore, and pushed the team to actually think it through instead of just doing what the doc said.",
     relatedPersonIds: [cayden],
   });
   addLesson({
@@ -695,6 +1313,7 @@ async function main() {
     theme: "Leadership",
     isInferred: true,
     noteId: noteCayden1,
+    quote: "Also made clear he doesn't want this delivered in two phases if it can be done as one complete flow - said splitting it up just creates more handover risk.",
     relatedPersonIds: [cayden],
   });
 
@@ -706,6 +1325,7 @@ async function main() {
     theme: "Stakeholder Management",
     isInferred: true,
     noteId: noteLydia1,
+    quote: "Kept pushing: what exactly happened, what's causing it, what have other teams done in a similar spot.",
   });
   addLesson({
     title: "Admit the issue before defending it.",
@@ -714,6 +1334,7 @@ async function main() {
     theme: "Stakeholder Management",
     isInferred: false,
     noteId: noteGordon1,
+    quote: "Gordon's explanation of the integration issue ran twenty minutes for something that should've taken five - by the end half the room had lost the thread on what was actually a simple fix.",
   });
   addLesson({
     title: "Avoid internal blame.",
@@ -721,6 +1342,7 @@ async function main() {
     theme: "Stakeholder Management",
     isInferred: false,
     noteId: noteGordon2,
+    quote: "Client call got awkward when Gordon brought up a disagreement with his own teammate mid-presentation - not the place for it.",
   });
   addLesson({
     title: "Observe stakeholder dynamics instead of treating every attendee as equally influential.",
@@ -728,6 +1350,7 @@ async function main() {
     theme: "Stakeholder Management",
     isInferred: true,
     noteId: noteLionel2,
+    quote: "Noticed Lionel spends the first ten minutes of any new client meeting just watching who talks, who gets deferred to, who everyone looks at before agreeing.",
     relatedPersonIds: [lionel],
   });
 
@@ -738,6 +1361,7 @@ async function main() {
     theme: "Personal Growth",
     isInferred: true,
     noteId: noteGiselle2,
+    quote: "She's good at reading whether people are actually following or just nodding along, and asks pointed questions that show her how a team actually thinks, not just what they shipped.",
   });
   addLesson({
     title: "It is okay to be learning.",
@@ -745,6 +1369,7 @@ async function main() {
     theme: "Personal Growth",
     isInferred: false,
     noteId: noteJayden1,
+    quote: "When I walked him through what I actually needed, he got it fast and course-corrected without getting defensive - actually said upfront 'oh I wasn't sure about that part, should've asked.'",
   });
   addLesson({
     title: "Exercise judgement instead of blindly following instructions.",
@@ -752,6 +1377,7 @@ async function main() {
     theme: "Personal Growth",
     isInferred: true,
     noteId: noteCayden4,
+    quote: "He's the type who'll ask 'is there a better way' before accepting 'that's how we've always done it.'",
     relatedPersonIds: [cayden],
   });
 
@@ -808,10 +1434,23 @@ async function main() {
   if (selfInsightsError) throw selfInsightsError;
 
   const { error: selfEvidenceError } = await supabase.from("self_insight_evidence").insert([
-    { self_insight_id: siPattern, note_id: note1 },
-    { self_insight_id: siStrength, note_id: note1 },
-    { self_insight_id: siWatchOut, note_id: note1 },
-    { self_insight_id: siWorkingOn, note_id: note3 },
+    {
+      self_insight_id: siPattern,
+      note_id: note1,
+      quote: "John kept pushing on downstream impact and wouldn't let up until I showed the mitigation plan - then he was fine.",
+    },
+    {
+      self_insight_id: siStrength,
+      note_id: note1,
+      quote: "John kept pushing on downstream impact and wouldn't let up until I showed the mitigation plan - then he was fine.",
+    },
+    { self_insight_id: siWatchOut, note_id: note1, quote: "Room felt tense whenever the timeline came up." },
+    {
+      self_insight_id: siWorkingOn,
+      note_id: note3,
+      quote:
+        "Separately: I flagged the resourcing risk two days early this time instead of waiting, and it landed much better than last month's last-minute timeline ambush.",
+    },
   ]);
   if (selfEvidenceError) throw selfEvidenceError;
 
