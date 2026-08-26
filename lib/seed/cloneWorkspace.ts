@@ -202,7 +202,11 @@ async function cloneJoinRows(
 
   const rows = data
     .map((row: Record<string, unknown>) => {
-      const mapped: Record<string, string> = {};
+      // Start from every column on the source row (e.g. quote on the
+      // evidence tables) so nothing beyond the remapped ids gets silently
+      // dropped, then overwrite just the foreign-key columns with their
+      // remapped ids.
+      const mapped: Record<string, unknown> = { ...row };
       for (const col of columns) {
         const mappedId = idMaps[col]?.get(row[col] as string);
         if (!mappedId) return null; // skip rows we don't have a remapped id for
@@ -210,7 +214,7 @@ async function cloneJoinRows(
       }
       return mapped;
     })
-    .filter((row): row is Record<string, string> => row !== null);
+    .filter((row): row is Record<string, unknown> => row !== null);
 
   if (!rows.length) return;
 
