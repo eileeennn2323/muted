@@ -82,20 +82,21 @@ async function seedMap(
   mapId: string,
   focusPersonId: string
 ): Promise<{ nodes: MapNode[]; edges: MapEdge[] }> {
-  const { data: focusPerson, error: focusError } = await supabase
-    .from("people")
-    .select("id,name,roles")
-    .eq("id", focusPersonId)
-    .maybeSingle();
-  if (focusError) throw focusError;
+  // Neither of these depends on the other's result, so run them together
+  // instead of paying for two sequential round-trips.
+  const [focusPersonResult, relRowsResult] = await Promise.all([
+    supabase.from("people").select("id,name,roles").eq("id", focusPersonId).maybeSingle(),
+    supabase
+      .from("relationship_insights")
+      .select("id,person_a_id,person_b_id,content,relationship_type")
+      .eq("workspace_id", workspaceId)
+      .or(`person_a_id.eq.${focusPersonId},person_b_id.eq.${focusPersonId}`),
+  ]);
+  if (focusPersonResult.error) throw focusPersonResult.error;
+  const focusPerson = focusPersonResult.data;
   if (!focusPerson) return { nodes: [], edges: [] };
-
-  const { data: relRows, error: relError } = await supabase
-    .from("relationship_insights")
-    .select("id,person_a_id,person_b_id,content,relationship_type")
-    .eq("workspace_id", workspaceId)
-    .or(`person_a_id.eq.${focusPersonId},person_b_id.eq.${focusPersonId}`);
-  if (relError) throw relError;
+  if (relRowsResult.error) throw relRowsResult.error;
+  const relRows = relRowsResult.data;
 
   const otherIds = Array.from(
     new Set(
@@ -237,47 +238,54 @@ async function loadExistingMap(
   workspaceId: string,
   mapId: string
 ): Promise<{ nodes: MapNode[]; edges: MapEdge[]; notes: MapNoteItem[] }> {
-  const { data: nodeRows, error: nodesError } = await supabase
-    .from("map_nodes")
-    .select("id,node_kind,person_id,position_x,position_y")
-    .eq("workspace_id", workspaceId)
-    .eq("map_id", mapId);
-  if (nodesError) throw nodesError;
+  // Nodes, edges, and notes are all independent reads of the same map_id —
+  // no reason to pay for three sequential round-trips.
+  const [nodeRowsResult, edgeRowsResult, noteRowsResult] = await Promise.all([
+    supabase
+      .from("map_nodes")
+      .select("id,node_kind,person_id,position_x,position_y")
+      .eq("workspace_id", workspaceId)
+      .eq("map_id", mapId),
+    supabase
+      .from("map_edges")
+      .select("id,source_node_id,target_node_id,label,edge_kind,source_relationship_insight_id,created_by")
+      .eq("workspace_id", workspaceId)
+      .eq("map_id", mapId),
+    supabase
+      .from("map_notes")
+      .select("id,content,position_x,position_y")
+      .eq("workspace_id", workspaceId)
+      .eq("map_id", mapId),
+  ]);
+  if (nodeRowsResult.error) throw nodeRowsResult.error;
+  if (edgeRowsResult.error) throw edgeRowsResult.error;
+  if (noteRowsResult.error) throw noteRowsResult.error;
+  const nodeRows = nodeRowsResult.data;
+  const edgeRows = edgeRowsResult.data;
+  const noteRows = noteRowsResult.data;
 
   const personIds = (nodeRows ?? []).map((n) => n.person_id).filter((id): id is string => Boolean(id));
-  const peopleById = new Map<string, { name: string; roles: string[] }>();
-  if (personIds.length > 0) {
-    const { data: people, error: peopleError } = await supabase.from("people").select("id,name,roles").in("id", personIds);
-    if (peopleError) throw peopleError;
-    for (const p of people ?? []) peopleById.set(p.id, p);
-  }
-
-  const { data: edgeRows, error: edgesError } = await supabase
-    .from("map_edges")
-    .select("id,source_node_id,target_node_id,label,edge_kind,source_relationship_insight_id,created_by")
-    .eq("workspace_id", workspaceId)
-    .eq("map_id", mapId);
-  if (edgesError) throw edgesError;
-
   const insightIds = (edgeRows ?? [])
     .map((e) => e.source_relationship_insight_id)
     .filter((id): id is string => Boolean(id));
-  const contentByInsightId = new Map<string, string>();
-  if (insightIds.length > 0) {
-    const { data: insightRows, error: insightsError } = await supabase
-      .from("relationship_insights")
-      .select("id,content")
-      .in("id", insightIds);
-    if (insightsError) throw insightsError;
-    for (const row of insightRows ?? []) contentByInsightId.set(row.id, row.content as string);
-  }
 
-  const { data: noteRows, error: notesError } = await supabase
-    .from("map_notes")
-    .select("id,content,position_x,position_y")
-    .eq("workspace_id", workspaceId)
-    .eq("map_id", mapId);
-  if (notesError) throw notesError;
+  // These two only depend on the results above, not on each other.
+  const [peopleResult, insightRowsResult] = await Promise.all([
+    personIds.length > 0
+      ? supabase.from("people").select("id,name,roles").in("id", personIds)
+      : Promise.resolve({ data: [], error: null } as const),
+    insightIds.length > 0
+      ? supabase.from("relationship_insights").select("id,content").in("id", insightIds)
+      : Promise.resolve({ data: [], error: null } as const),
+  ]);
+  if (peopleResult.error) throw peopleResult.error;
+  if (insightRowsResult.error) throw insightRowsResult.error;
+
+  const peopleById = new Map<string, { name: string; roles: string[] }>();
+  for (const p of peopleResult.data ?? []) peopleById.set(p.id, p);
+
+  const contentByInsightId = new Map<string, string>();
+  for (const row of insightRowsResult.data ?? []) contentByInsightId.set(row.id, row.content as string);
 
   return {
     nodes: (nodeRows ?? []).map((n) => ({

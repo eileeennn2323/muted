@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { AddNoteFormPanel, AddNoteProvider, AddNoteTriggerButton } from "@/components/people/AddNote";
 import DeletePersonMenu from "@/components/people/DeletePersonMenu";
 import FacetCard from "@/components/people/FacetCard";
@@ -12,6 +13,15 @@ import { avatarColorForRole } from "@/lib/people/avatarColor";
 import { initialsFor } from "@/lib/people/format";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { getWorkspaceId } from "@/lib/workspace";
+
+function RelationshipMapSkeleton() {
+  return (
+    <div className="mt-8 animate-pulse rounded-2xl border border-border bg-paper p-5">
+      <div className="h-4 w-40 rounded bg-border" />
+      <div className="mt-4 h-[520px] rounded-2xl bg-border/20" />
+    </div>
+  );
+}
 
 const FACETS = [
   { type: "cares_about", title: "What they care about", icon: <HeartIcon /> },
@@ -111,7 +121,9 @@ export default async function PersonPlaybookPage({ params }: PageProps<"/people/
       <PersonLessons lessons={lessons} />
 
       {workspaceId && (
-        <RelationshipMapSection supabase={getSupabaseAdmin()} workspaceId={workspaceId} personId={person.id} />
+        <Suspense fallback={<RelationshipMapSkeleton />}>
+          <RelationshipMapSection supabase={getSupabaseAdmin()} workspaceId={workspaceId} personId={person.id} />
+        </Suspense>
       )}
     </div>
   );

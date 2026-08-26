@@ -74,30 +74,43 @@ export async function getPersonPlaybook(
   workspaceId: string,
   personId: string
 ): Promise<PersonPlaybook | null> {
-  const { data: person, error: personError } = await supabase
-    .from("people")
-    .select("id,name,roles")
-    .eq("workspace_id", workspaceId)
-    .eq("id", personId)
-    .maybeSingle();
-  if (personError) throw personError;
+  // None of these three depend on each other's results — only on the
+  // personId/workspaceId we already have — so fetch them together instead
+  // of paying for three sequential round-trips.
+  const [personResult, insightsResult, lessonLinksResult] = await Promise.all([
+    supabase.from("people").select("id,name,roles").eq("workspace_id", workspaceId).eq("id", personId).maybeSingle(),
+    supabase
+      .from("person_insights")
+      .select("id,type,content,confidence,is_inferred,user_edited")
+      .eq("workspace_id", workspaceId)
+      .eq("person_id", personId)
+      .order("updated_at", { ascending: false }),
+    supabase.from("lesson_people").select("lesson_id").eq("person_id", personId),
+  ]);
+  if (personResult.error) throw personResult.error;
+  const person = personResult.data;
   if (!person) return null;
+  if (insightsResult.error) throw insightsResult.error;
+  if (lessonLinksResult.error) throw lessonLinksResult.error;
 
-  const { data: insights, error: insightsError } = await supabase
-    .from("person_insights")
-    .select("id,type,content,confidence,is_inferred,user_edited")
-    .eq("workspace_id", workspaceId)
-    .eq("person_id", personId)
-    .order("updated_at", { ascending: false });
-  if (insightsError) throw insightsError;
-
+  const insights = insightsResult.data;
   const insightIds = (insights ?? []).map((i) => i.id);
-  const evidenceByInsight = await fetchEvidenceMap(
-    supabase,
-    "person_insight_evidence",
-    "insight_id",
-    insightIds
-  );
+  const lessonIds = Array.from(new Set((lessonLinksResult.data ?? []).map((l) => l.lesson_id)));
+
+  // Evidence lookup and the lessons fetch depend on different upstream
+  // results (insightIds vs. lessonIds), not on each other.
+  const [evidenceByInsight, lessonRowsResult] = await Promise.all([
+    fetchEvidenceMap(supabase, "person_insight_evidence", "insight_id", insightIds),
+    lessonIds.length > 0
+      ? supabase
+          .from("lessons")
+          .select("id,title,explanation,is_inferred,updated_at")
+          .eq("workspace_id", workspaceId)
+          .in("id", lessonIds)
+          .order("updated_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null } as const),
+  ]);
+  if (lessonRowsResult.error) throw lessonRowsResult.error;
 
   const insightsByType: Record<string, PlaybookInsight[]> = {};
   for (const insight of insights ?? []) {
@@ -113,29 +126,12 @@ export async function getPersonPlaybook(
     (insightsByType[insight.type] ??= []).push(entry);
   }
 
-  const { data: lessonLinks, error: lessonLinksError } = await supabase
-    .from("lesson_people")
-    .select("lesson_id")
-    .eq("person_id", personId);
-  if (lessonLinksError) throw lessonLinksError;
-
-  const lessonIds = Array.from(new Set((lessonLinks ?? []).map((l) => l.lesson_id)));
-  let lessons: PersonLesson[] = [];
-  if (lessonIds.length > 0) {
-    const { data: lessonRows, error: lessonsError } = await supabase
-      .from("lessons")
-      .select("id,title,explanation,is_inferred,updated_at")
-      .eq("workspace_id", workspaceId)
-      .in("id", lessonIds)
-      .order("updated_at", { ascending: false });
-    if (lessonsError) throw lessonsError;
-    lessons = (lessonRows ?? []).map((l) => ({
-      id: l.id,
-      title: l.title,
-      explanation: l.explanation,
-      isInferred: l.is_inferred,
-    }));
-  }
+  const lessons: PersonLesson[] = (lessonRowsResult.data ?? []).map((l) => ({
+    id: l.id,
+    title: l.title,
+    explanation: l.explanation,
+    isInferred: l.is_inferred,
+  }));
 
   return { person, insightsByType, lessons };
 }

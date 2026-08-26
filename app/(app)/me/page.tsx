@@ -15,8 +15,10 @@ const SECTIONS = [
 export default async function MePage() {
   const workspaceId = await getWorkspaceId();
   const supabase = getSupabaseAdmin();
-  const byType = workspaceId ? await getSelfInsightsByType(supabase, workspaceId) : {};
-  const relevantLessons = workspaceId ? (await getLessonsByTheme(supabase, workspaceId))["Personal Growth"] ?? [] : [];
+  const [byType, lessonsByTheme] = workspaceId
+    ? await Promise.all([getSelfInsightsByType(supabase, workspaceId), getLessonsByTheme(supabase, workspaceId)])
+    : [{}, {}];
+  const relevantLessons = lessonsByTheme["Personal Growth"] ?? [];
 
   return (
     <div>

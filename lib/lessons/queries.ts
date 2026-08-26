@@ -27,11 +27,14 @@ export async function getLessonsByTheme(
 
   const lessonIds = lessons.map((l) => l.id);
 
-  const { data: linkRows, error: linkError } = await supabase
-    .from("lesson_people")
-    .select("lesson_id,person_id")
-    .in("lesson_id", lessonIds);
-  if (linkError) throw linkError;
+  // Evidence only depends on lessonIds, not on the person-link chain below,
+  // so it can run alongside it instead of waiting its turn.
+  const [linkRowsResult, evidenceByLesson] = await Promise.all([
+    supabase.from("lesson_people").select("lesson_id,person_id").in("lesson_id", lessonIds),
+    fetchEvidenceMap(supabase, "lesson_evidence", "lesson_id", lessonIds),
+  ]);
+  if (linkRowsResult.error) throw linkRowsResult.error;
+  const linkRows = linkRowsResult.data;
 
   const personIds = Array.from(new Set((linkRows ?? []).map((l) => l.person_id)));
   const namesById = new Map<string, string>();
@@ -49,8 +52,6 @@ export async function getLessonsByTheme(
     list.push({ id: link.person_id, name });
     peopleByLesson.set(link.lesson_id, list);
   }
-
-  const evidenceByLesson = await fetchEvidenceMap(supabase, "lesson_evidence", "lesson_id", lessonIds);
 
   const byTheme: Record<string, LessonItem[]> = {};
   for (const lesson of lessons) {
