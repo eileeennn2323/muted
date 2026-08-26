@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { LockIcon } from "@/components/people/icons";
 import PickedUpResult, { type PickedUpData } from "./PickedUpResult";
 
 type CaptureResponse = {
@@ -65,7 +66,7 @@ export default function CaptureForm({
           ref={textareaRef}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Paste meeting notes, an observation, an email, or anything worth remembering…"
+          placeholder="Dump what happened — Muted will figure out who it's about and what it means."
           rows={onCancel ? 5 : 10}
           disabled={submitting}
           autoFocus={!!onCancel}
@@ -91,6 +92,19 @@ export default function CaptureForm({
           </div>
         </div>
       </form>
+
+      {!onCancel && (
+        <div className="mt-4 space-y-2">
+          <p className="text-sm text-cocoa-faint italic">
+            e.g. &ldquo;gordon keeps saying &lsquo;exactly, you&rsquo;re absolutely right!&rsquo; then
+            does the opposite two minutes later — hard to communicate with, doesn&rsquo;t take
+            feedback.&rdquo;
+          </p>
+          <p className="flex items-center gap-1.5 text-sm text-cocoa-faint">
+            <LockIcon className="h-3.5 w-3.5" /> Private to you — no one else can see this.
+          </p>
+        </div>
+      )}
 
       <PickedUpResult pickedUp={result?.pickedUp ?? null} warning={result?.warning} />
     </div>

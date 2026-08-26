@@ -10,6 +10,14 @@ export default function HomePage() {
         will organise it.
       </p>
 
+      <p className="mt-6 font-mono text-xs uppercase tracking-wide text-cocoa-soft">
+        Learn · Predict · Strategise
+      </p>
+      <p className="mt-2 max-w-lg text-cocoa-soft">
+        Write what you notice about people — Muted turns it into a private playbook:
+        what they care about, how to work with them, what to expect next time.
+      </p>
+
       <div className="mt-8">
         <CaptureForm />
       </div>
