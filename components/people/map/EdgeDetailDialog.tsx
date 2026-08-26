@@ -84,10 +84,6 @@ export default function EdgeDetailDialog({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-cocoa/25 p-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-paper p-6 shadow-2xl">
-        {isMuted && (
-          <p className="font-mono text-[10px] tracking-wide text-cedar-dark uppercase">{edge.label}</p>
-        )}
-
         {editing ? (
           <textarea
             value={draft}
@@ -95,10 +91,10 @@ export default function EdgeDetailDialog({
             rows={4}
             autoFocus
             disabled={saving}
-            className="mt-2 w-full resize-y rounded-lg border border-border bg-cream p-2.5 text-[14px] text-cocoa-body outline-none focus:border-cedar disabled:opacity-70"
+            className="w-full resize-y rounded-lg border border-border bg-cream p-2.5 text-[14px] text-cocoa-body outline-none focus:border-cedar disabled:opacity-70"
           />
         ) : (
-          <p className="mt-2 text-[14.5px] leading-relaxed text-cocoa-body">{initialText}</p>
+          <p className="text-[14.5px] leading-relaxed text-cocoa-body">{initialText}</p>
         )}
 
         {error && <p className="mt-2 text-[13px] text-ochre">{error}</p>}
