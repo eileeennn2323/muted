@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Nav from "./Nav";
 import AskMutedPanel from "./ask/AskMutedPanel";
 import { TwinkleIcon } from "./people/icons";
@@ -11,6 +12,12 @@ import { TwinkleIcon } from "./people/icons";
  * push anything. */
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [askOpen, setAskOpen] = useState(false);
+  // useParams() reflects the full current URL's dynamic segments regardless
+  // of where in the tree this client component sits — this is what lets a
+  // layout-level AppShell know it's on /people/[id] without any prop
+  // drilling or context provider.
+  const params = useParams<{ id?: string }>();
+  const personId = typeof params?.id === "string" ? params.id : null;
 
   useEffect(() => {
     if (!askOpen) return;
@@ -38,7 +45,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         }`}
       >
         <div className="h-full w-[400px]">
-          <AskMutedPanel onClose={() => setAskOpen(false)} />
+          <AskMutedPanel onClose={() => setAskOpen(false)} personId={personId} />
         </div>
       </div>
 
@@ -52,7 +59,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             className="absolute inset-0 bg-cocoa/25"
           />
           <div className="absolute inset-0">
-            <AskMutedPanel onClose={() => setAskOpen(false)} />
+            <AskMutedPanel onClose={() => setAskOpen(false)} personId={personId} />
           </div>
         </div>
       )}

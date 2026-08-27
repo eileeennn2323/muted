@@ -1,33 +1,13 @@
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { ensureWorkspaceSeeded, getWorkspaceId } from "@/lib/workspace";
 import { checkAndIncrementUsage } from "@/lib/rateLimit";
 import { buildAskContext } from "@/lib/ask/context";
 import { runAskResponse } from "@/lib/ask/respond";
+import { getOrCreateConversation, resolvePerson } from "@/lib/ask/conversation";
 import { truncate } from "@/lib/evidence";
 
 const MAX_MESSAGE_LENGTH = 2000;
-
-/** One ongoing conversation per workspace — enough for the hackathon scope;
- * matches "chat history = conversational continuity" from the masterplan
- * without building a conversation list UI. */
-async function getOrCreateConversation(supabase: SupabaseClient, workspaceId: string): Promise<string> {
-  const { data: existing, error } = await supabase
-    .from("conversations")
-    .select("id")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  if (existing) return existing.id;
-
-  const id = crypto.randomUUID();
-  const { error: insertError } = await supabase.from("conversations").insert({ id, workspace_id: workspaceId });
-  if (insertError) throw insertError;
-  return id;
-}
 
 function safeApproachOnly(content: string): string {
   try {
@@ -39,15 +19,18 @@ function safeApproachOnly(content: string): string {
   return content;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const workspaceId = await getWorkspaceId();
   if (!workspaceId) {
     return NextResponse.json({ error: "No session found." }, { status: 400 });
   }
 
+  const requestedPersonId = new URL(request.url).searchParams.get("personId");
+
   const supabase = getSupabaseAdmin();
   await ensureWorkspaceSeeded(workspaceId);
-  const conversationId = await getOrCreateConversation(supabase, workspaceId);
+  const person = await resolvePerson(supabase, workspaceId, requestedPersonId);
+  const conversationId = await getOrCreateConversation(supabase, workspaceId, person?.id ?? null);
 
   const { data: messages, error } = await supabase
     .from("conversation_messages")
@@ -59,7 +42,7 @@ export async function GET() {
     return NextResponse.json({ error: "Could not load conversation." }, { status: 500 });
   }
 
-  return NextResponse.json({ conversationId, messages: messages ?? [] });
+  return NextResponse.json({ conversationId, messages: messages ?? [], personName: person?.name ?? null });
 }
 
 export async function POST(request: Request) {
@@ -70,10 +53,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const message =
-    typeof body === "object" && body !== null && typeof (body as { message?: unknown }).message === "string"
-      ? (body as { message: string }).message.trim()
-      : "";
+  const bodyObj = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
+  const message = typeof bodyObj.message === "string" ? bodyObj.message.trim() : "";
+  const requestedPersonId = typeof bodyObj.personId === "string" ? bodyObj.personId : null;
   if (!message) {
     return NextResponse.json({ error: "A message is required." }, { status: 400 });
   }
@@ -97,7 +79,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const conversationId = await getOrCreateConversation(supabase, workspaceId);
+  const person = await resolvePerson(supabase, workspaceId, requestedPersonId);
+  const conversationId = await getOrCreateConversation(supabase, workspaceId, person?.id ?? null);
 
   const { data: priorMessages, error: historyError } = await supabase
     .from("conversation_messages")
@@ -126,7 +109,7 @@ export async function POST(request: Request) {
 
   let answer;
   try {
-    answer = await runAskResponse(message, context, history);
+    answer = await runAskResponse(message, context, history, person?.name ?? null);
   } catch (error) {
     console.error("Ask Muted generation failed:", error);
     answer = null;

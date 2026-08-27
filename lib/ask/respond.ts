@@ -9,11 +9,12 @@ import { findBannedLanguage } from "@/lib/safety/bannedLanguage";
 async function callGemini(
   question: string,
   context: AskContext,
-  history: { role: string; content: string }[]
+  history: { role: string; content: string }[],
+  focusPersonName: string | null
 ): Promise<AskAnswer | null> {
   try {
     const client = getGeminiClient();
-    const { system, user } = buildAskPrompt(question, context, history);
+    const { system, user } = buildAskPrompt(question, context, history, focusPersonName);
 
     const response = await client.models.generateContent({
       model: CAPTURE_MODEL,
@@ -89,10 +90,11 @@ async function callGemini(
 export async function runAskResponse(
   question: string,
   context: AskContext,
-  history: { role: string; content: string }[]
+  history: { role: string; content: string }[],
+  focusPersonName: string | null = null
 ): Promise<AskAnswer | null> {
-  const first = await callGemini(question, context, history);
+  const first = await callGemini(question, context, history, focusPersonName);
   if (first) return first;
   console.warn("Ask Muted response failed — retrying once.");
-  return await callGemini(question, context, history);
+  return await callGemini(question, context, history, focusPersonName);
 }

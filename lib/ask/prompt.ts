@@ -36,12 +36,17 @@ function formatJSON(value: unknown): string {
 export function buildAskPrompt(
   question: string,
   context: AskContext,
-  history: { role: string; content: string }[]
+  history: { role: string; content: string }[],
+  focusPersonName: string | null = null
 ): { system: string; user: string } {
   const historyBlock =
     history.length > 0
       ? `Recent conversation:\n${history.map((m) => `${m.role}: ${m.content}`).join("\n")}\n\n`
       : "";
+
+  const focusBlock = focusPersonName
+    ? `The user is currently viewing ${focusPersonName}'s profile. If the question doesn't name a specific person, assume it's about ${focusPersonName}.\n\n`
+    : "";
 
   const user = `People:
 ${formatJSON(context.people)}
@@ -58,7 +63,7 @@ ${formatJSON(context.lessons)}
 Self-insights (about the user):
 ${formatJSON(context.selfInsights)}
 
-${historyBlock}Question: ${question}
+${focusBlock}${historyBlock}Question: ${question}
 
 Answer using only the memory above.`;
 

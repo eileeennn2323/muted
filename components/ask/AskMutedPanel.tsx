@@ -3,7 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import Logo from "@/components/Logo";
 
-const SUGGESTIONS = ["How should I open on Tuesday?", "What might go wrong?", "Draft the one-pager"];
+const GENERIC_SUGGESTIONS = ["How should I open on Tuesday?", "What might go wrong?", "Draft the one-pager"];
+
+function suggestionsFor(personName: string | null): string[] {
+  if (!personName) return GENERIC_SUGGESTIONS;
+  return [
+    `How should I approach my next meeting with ${personName}?`,
+    `What might go wrong with ${personName}?`,
+    `Draft a one-pager for working with ${personName}`,
+  ];
+}
 
 type AssistantContent = {
   approach: string;
@@ -127,29 +136,58 @@ function AssistantAnswer({ content }: { content: AssistantContent }) {
   );
 }
 
-export default function AskMutedPanel({ onClose }: { onClose?: () => void }) {
+export default function AskMutedPanel({
+  onClose,
+  personId = null,
+}: {
+  onClose?: () => void;
+  /** The person whose profile this panel is currently scoped to, or null for
+   * the general conversation shared by Lessons, /me, Home, and /ask. Passing
+   * a different id (i.e. navigating to another person's page) resets the
+   * panel to that person's own conversation — this is what stops Cayden's
+   * thread from leaking onto Lydia's page or into Lessons. */
+  personId?: string | null;
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [personName, setPersonName] = useState<string | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Adjusting state during render (rather than in an effect body) when
+  // personId changes — e.g. navigating from Cayden's page to Lydia's —
+  // clears the previous person's messages immediately, before the fetch
+  // below even starts, instead of briefly showing stale content.
+  const [prevPersonId, setPrevPersonId] = useState(personId);
+  if (personId !== prevPersonId) {
+    setPrevPersonId(personId);
+    setMessages([]);
+    setPersonName(null);
+    setLoadingHistory(true);
+    setError(null);
+  }
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/ask");
+        const url = personId ? `/api/ask?personId=${encodeURIComponent(personId)}` : "/api/ask";
+        const res = await fetch(url);
         const data = await res.json();
         if (cancelled) return;
-        if (res.ok && Array.isArray(data.messages)) {
-          setMessages(
-            data.messages.map((m: { id: string; role: "user" | "assistant"; content: string }) => ({
-              id: m.id,
-              role: m.role,
-              content: m.role === "assistant" ? parseAssistantContent(m.content) : m.content,
-            }))
-          );
+        if (res.ok) {
+          setPersonName(typeof data.personName === "string" ? data.personName : null);
+          if (Array.isArray(data.messages)) {
+            setMessages(
+              data.messages.map((m: { id: string; role: "user" | "assistant"; content: string }) => ({
+                id: m.id,
+                role: m.role,
+                content: m.role === "assistant" ? parseAssistantContent(m.content) : m.content,
+              }))
+            );
+          }
         }
       } catch {
         // silent — the panel still works for sending a first message
@@ -160,7 +198,7 @@ export default function AskMutedPanel({ onClose }: { onClose?: () => void }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [personId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -178,7 +216,7 @@ export default function AskMutedPanel({ onClose }: { onClose?: () => void }) {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify({ message: trimmed, personId }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -199,29 +237,54 @@ export default function AskMutedPanel({ onClose }: { onClose?: () => void }) {
     }
   }
 
+  async function startNewConversation() {
+    if (sending) return;
+    setError(null);
+    setMessages([]);
+    try {
+      await fetch("/api/ask/new", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ personId }),
+      });
+    } catch {
+      setError("Couldn't reach Muted. Check your connection and try again.");
+    }
+  }
+
   return (
     <div className="flex h-full flex-col bg-cream p-6">
       <div className="flex shrink-0 items-center gap-2">
         <span className="text-cedar">
           <Logo size={18} />
         </span>
-        <p className="font-mono text-[11px] tracking-[0.15em] text-cocoa-soft uppercase">Ask Muted</p>
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="ml-auto text-cocoa-faint hover:text-cocoa"
-          >
-            <CloseIcon />
-          </button>
-        )}
+        <p className="font-mono text-[11px] tracking-[0.15em] text-cocoa-soft uppercase">
+          Ask Muted{personName && <span className="normal-case tracking-normal"> · {personName}</span>}
+        </p>
+        <div className="ml-auto flex items-center gap-3">
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={startNewConversation}
+              className="font-mono text-[10px] tracking-wide text-cocoa-faint uppercase hover:text-cocoa-soft"
+            >
+              New conversation
+            </button>
+          )}
+          {onClose && (
+            <button type="button" onClick={onClose} aria-label="Close" className="text-cocoa-faint hover:text-cocoa">
+              <CloseIcon />
+            </button>
+          )}
+        </div>
       </div>
 
       <div ref={scrollRef} className="mt-5 flex-1 overflow-y-auto">
         {messages.length === 0 && !loadingHistory && (
           <p className="font-serif text-2xl leading-snug text-cocoa-body">
-            Ask me anything about the people you work with — I only know what you have told me.
+            {personName
+              ? `Ask me anything about ${personName} — I only know what you have told me.`
+              : "Ask me anything about the people you work with — I only know what you have told me."}
           </p>
         )}
 
@@ -247,7 +310,7 @@ export default function AskMutedPanel({ onClose }: { onClose?: () => void }) {
 
       {messages.length === 0 && (
         <div className="mt-4 flex shrink-0 flex-col gap-2.5">
-          {SUGGESTIONS.map((s) => (
+          {suggestionsFor(personName).map((s) => (
             <button
               key={s}
               type="button"
