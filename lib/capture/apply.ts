@@ -97,7 +97,21 @@ export async function applyCaptureExtraction(params: {
     }
   }
 
-  const resolveRef = (ref: string): string | null => refMap.get(ref) ?? null;
+  // person_ref is supposed to be an existing_person_id or a new_person_name
+  // reused verbatim (both land in refMap above) — but the model occasionally
+  // writes an existing person's plain name instead, even when it correctly
+  // resolved existing_person_id for that same person elsewhere in the same
+  // response (observed live: extraction.people correctly set
+  // existing_person_id, but the matching person_insights entry used the bare
+  // name as person_ref instead of reusing that id). Without a fallback here,
+  // that entire insight silently vanishes — resolveRef returns null, apply.ts
+  // skips it, no error, no log. Case-insensitive name match against every
+  // known person (pre-existing and newly introduced this batch) recovers it.
+  const nameToIdLower = new Map<string, string>();
+  for (const [id, name] of namesById) nameToIdLower.set(name.toLowerCase(), id);
+
+  const resolveRef = (ref: string): string | null =>
+    refMap.get(ref) ?? nameToIdLower.get(ref.trim().toLowerCase()) ?? null;
 
   const personLineCandidates = new Map<
     string,

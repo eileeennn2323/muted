@@ -73,12 +73,22 @@ export async function buildMemoryContext(
   let personInsights: PersonInsightRow[] = [];
   let relationshipInsights: RelationshipInsightRow[] = [];
 
+  // Capped and most-recent-first: a richly-profiled person can have dozens
+  // of insights, and sending all of them as raw JSON context bloats the
+  // prompt enough that the (lite-tier) capture model starts silently
+  // under-extracting or returning nothing at all — observed live. The model
+  // only needs enough existing context to catch near-duplicates and support
+  // reinforcement, not the person's entire history.
+  const CONTEXT_INSIGHT_LIMIT = 15;
+
   if (plausibleIdList.length > 0) {
     const { data: piData, error: piError } = await supabase
       .from("person_insights")
       .select("id,person_id,type,content,confidence,is_inferred,user_edited")
       .eq("workspace_id", workspaceId)
-      .in("person_id", plausibleIdList);
+      .in("person_id", plausibleIdList)
+      .order("updated_at", { ascending: false })
+      .limit(CONTEXT_INSIGHT_LIMIT);
     if (piError) throw piError;
     personInsights = (piData ?? []) as PersonInsightRow[];
 
@@ -87,7 +97,9 @@ export async function buildMemoryContext(
       .from("relationship_insights")
       .select("id,person_a_id,person_b_id,content,confidence,is_inferred,user_edited")
       .eq("workspace_id", workspaceId)
-      .or(`person_a_id.in.(${idList}),person_b_id.in.(${idList})`);
+      .or(`person_a_id.in.(${idList}),person_b_id.in.(${idList})`)
+      .order("updated_at", { ascending: false })
+      .limit(CONTEXT_INSIGHT_LIMIT);
     if (riError) throw riError;
     relationshipInsights = (riData ?? []) as RelationshipInsightRow[];
   }
@@ -95,7 +107,9 @@ export async function buildMemoryContext(
   const { data: lessonsData, error: lessonsError } = await supabase
     .from("lessons")
     .select("id,title,themes")
-    .eq("workspace_id", workspaceId);
+    .eq("workspace_id", workspaceId)
+    .order("updated_at", { ascending: false })
+    .limit(CONTEXT_INSIGHT_LIMIT);
   if (lessonsError) throw lessonsError;
 
   const { data: selfData, error: selfError } = await supabase
