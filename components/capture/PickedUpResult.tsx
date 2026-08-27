@@ -25,9 +25,15 @@ function InferredTag() {
 export default function PickedUpResult({
   pickedUp,
   warning,
+  currentPersonId,
 }: {
   pickedUp: PickedUpData | null;
   warning?: string;
+  /** The person whose page this form lives on, if any — "View profile" is
+   * pointless (and just clutter) for a line about this exact person, since
+   * the section below already updates in place. Still shown for anyone
+   * else the note mentions. */
+  currentPersonId?: string;
 }) {
   if (warning) {
     return (
@@ -60,7 +66,7 @@ export default function PickedUpResult({
               <span key={p.id}>
                 {i > 0 && ", "}
                 {p.name}
-                {!pickedUp.personLines.some((line) => line.personId === p.id) && (
+                {p.id !== currentPersonId && !pickedUp.personLines.some((line) => line.personId === p.id) && (
                   <>
                     {" "}
                     <Link href={`/people/${p.id}`} className="whitespace-nowrap text-cedar-dark hover:underline">
@@ -79,10 +85,14 @@ export default function PickedUpResult({
             {" — "}
             {line.content}
             {line.isInferred && <InferredTag />}
-            {" "}
-            <Link href={`/people/${line.personId}`} className="whitespace-nowrap text-cedar-dark hover:underline">
-              View profile →
-            </Link>
+            {line.personId !== currentPersonId && (
+              <>
+                {" "}
+                <Link href={`/people/${line.personId}`} className="whitespace-nowrap text-cedar-dark hover:underline">
+                  View profile →
+                </Link>
+              </>
+            )}
           </p>
         ))}
 

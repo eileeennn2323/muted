@@ -101,7 +101,7 @@ export default function CaptureForm({
         </div>
       )}
 
-      <PickedUpResult pickedUp={result?.pickedUp ?? null} warning={result?.warning} />
+      <PickedUpResult pickedUp={result?.pickedUp ?? null} warning={result?.warning} currentPersonId={personId} />
     </div>
   );
 }
