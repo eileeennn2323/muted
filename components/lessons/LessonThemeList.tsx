@@ -7,6 +7,15 @@ import LessonCard from "./LessonCard";
 export default function LessonThemeList({ initialLessons }: { initialLessons: LessonItem[] }) {
   const [items, setItems] = useState(initialLessons);
 
+  // Same reason as InsightList: useState's initial value only applies on
+  // first mount, so a router.refresh() elsewhere on the page never reaches
+  // this list's local state without adjusting it during render.
+  const [prevLessons, setPrevLessons] = useState(initialLessons);
+  if (initialLessons !== prevLessons) {
+    setPrevLessons(initialLessons);
+    setItems(initialLessons);
+  }
+
   if (items.length === 0) {
     return <p className="text-sm text-cocoa-faint">Nothing yet.</p>;
   }

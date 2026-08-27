@@ -15,6 +15,17 @@ export default function InsightList({
 }) {
   const [items, setItems] = useState(insights);
 
+  // useState's initial value only applies on first mount — without this,
+  // a router.refresh() elsewhere on the page (e.g. after Add Note) fetches
+  // fresh insights server-side, but this already-mounted component never
+  // sees them until a full page reload. Adjusting state during render
+  // (rather than in an effect) avoids the extra render pass.
+  const [prevInsights, setPrevInsights] = useState(insights);
+  if (insights !== prevInsights) {
+    setPrevInsights(insights);
+    setItems(insights);
+  }
+
   if (items.length === 0) {
     return <p className="py-1 text-[13.5px] text-cocoa-faint">{emptyLabel}</p>;
   }
