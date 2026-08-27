@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { EditableInsight } from "@/lib/evidence";
 import EvidenceBlock from "@/components/shared/EvidenceBlock";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 
 type UpdatedInsight = {
   id: string;
@@ -49,6 +50,7 @@ export default function InsightCard({
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
@@ -84,7 +86,6 @@ export default function InsightCard({
 
   async function handleDelete() {
     if (deleting) return;
-    if (!window.confirm("Delete this insight?")) return;
     setDeleting(true);
     setError(null);
     try {
@@ -98,6 +99,7 @@ export default function InsightCard({
       setError("Couldn't reach Muted.");
     } finally {
       setDeleting(false);
+      setConfirmOpen(false);
     }
   }
 
@@ -171,9 +173,22 @@ export default function InsightCard({
           userEdited={insight.userEdited}
           evidence={insight.evidence}
           onEdit={() => setEditing(true)}
-          onDelete={handleDelete}
+          onDelete={() => setConfirmOpen(true)}
           deleting={deleting}
           error={error}
+        />
+      )}
+
+      {confirmOpen && (
+        <ConfirmDialog
+          title="Delete this insight?"
+          description="This removes it from the profile. This cannot be undone."
+          confirmLabel="Delete"
+          pendingLabel="Deleting…"
+          pending={deleting}
+          error={error}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleDelete}
         />
       )}
     </li>

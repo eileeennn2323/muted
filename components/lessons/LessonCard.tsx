@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { LessonItem } from "@/lib/lessons/queries";
 import EvidenceBlock from "@/components/shared/EvidenceBlock";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
@@ -39,6 +40,7 @@ export default function LessonCard({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleted, setDeleted] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (deleted) return null;
 
@@ -75,7 +77,6 @@ export default function LessonCard({
 
   async function handleDelete() {
     if (deleting) return;
-    if (!window.confirm("Delete this lesson?")) return;
     setDeleting(true);
     setError(null);
     try {
@@ -90,6 +91,7 @@ export default function LessonCard({
       setError("Couldn't reach Muted.");
     } finally {
       setDeleting(false);
+      setConfirmOpen(false);
     }
   }
 
@@ -179,9 +181,22 @@ export default function LessonCard({
           userEdited={current.userEdited}
           evidence={current.evidence}
           onEdit={() => setEditing(true)}
-          onDelete={handleDelete}
+          onDelete={() => setConfirmOpen(true)}
           deleting={deleting}
           error={error}
+        />
+      )}
+
+      {confirmOpen && (
+        <ConfirmDialog
+          title="Delete this lesson?"
+          description="This removes it from your library. This cannot be undone."
+          confirmLabel="Delete"
+          pendingLabel="Deleting…"
+          pending={deleting}
+          error={error}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleDelete}
         />
       )}
     </div>
