@@ -1575,8 +1575,8 @@
         </div>
 
         <div class="ref-block">
-          <p class="ref-term">"Useful even when uncertain" <span style="font-style:normal; color:var(--muted);">— partial</span></p>
-          <p class="ref-desc">The thin-data refusal named the uncertainty clearly, but stopped there rather than following up with a best-effort answer — a partial miss on the second half of this principle. Worth tightening the prompt on.</p>
+          <p class="ref-term">"Useful even when uncertain" <span style="color:var(--gold); font-style:normal;">— fixed</span></p>
+          <p class="ref-desc">Originally a partial miss: the thin-data refusal named the uncertainty clearly, but stopped there rather than following up with a best-effort answer. Prompt tightened to require both parts in the same sentence pair, verified live against a zero-history test person: "Not enough history with Marcus to answer this confidently. As a general approach, open by clarifying the primary objective of the meeting so both of you are aligned on the expected output before diving into details." <code>expect</code>/<code>avoid</code> now also carry generic-but-useful items instead of sitting empty on thin data.</p>
         </div>
 
         <div class="ref-block">
@@ -1589,7 +1589,7 @@
           <p class="ref-desc">Two profiles failed to load their map during an initial accessibility-snapshot pass, and the canvas itself isn't readable as text — so this couldn't be confirmed by that method alone. Follow-up: the failed loads were traced to a burst of ~6 fresh demo workspaces being cloned in the same few seconds (an automated-testing artifact, not a map bug — confirmed by re-running the exact same insert directly against the database, which succeeded instantly once the burst had passed). Read the map-seeding code directly instead: it auto-drafts nodes and edges from existing relationship notes exactly once, the first time a person's map is opened, and never runs again for that person afterward — anything Muted notices later only ever appears in a separate suggestions panel for the user to approve. Confirmed by code, not just by clicking around.</p>
         </div>
 
-        <p class="ref-note">Read plainly if asked: strong on tone, evidence discipline, no-filler, and injection resistance. "Useful even when uncertain" needs prompt tightening on the follow-through half. Handling contradictions is still genuinely untested — needs a deliberate two-conflicting-notes probe.</p>
+        <p class="ref-note">Read plainly if asked: strong on tone, evidence discipline, no-filler, and injection resistance. "Useful even when uncertain" was tightened and re-verified. Handling contradictions is still genuinely untested — needs a deliberate two-conflicting-notes probe.</p>
       </div>
     </div>
   </div>
