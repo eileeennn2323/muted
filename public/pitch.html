@@ -1575,17 +1575,17 @@
         </div>
 
         <div class="ref-block">
-          <p class="ref-term">"Useful even when uncertain" <span style="color:var(--gold); font-style:normal;">— fixed</span></p>
+          <p class="ref-term">"Useful even when uncertain" <span style="color:var(--gold); font-style:normal;">— pass</span></p>
           <p class="ref-desc">Originally a partial miss: the thin-data refusal named the uncertainty clearly, but stopped there rather than following up with a best-effort answer. Prompt tightened to require both parts in the same sentence pair, verified live against a zero-history test person: "Not enough history with Marcus to answer this confidently. As a general approach, open by clarifying the primary objective of the meeting so both of you are aligned on the expected output before diving into details." <code>expect</code>/<code>avoid</code> now also carry generic-but-useful items instead of sitting empty on thin data.</p>
         </div>
 
         <div class="ref-block">
-          <p class="ref-term">Handling contradictions <span style="color:var(--gold); font-style:normal;">— fixed</span></p>
+          <p class="ref-term">Handling contradictions <span style="color:var(--gold); font-style:normal;">— pass</span></p>
           <p class="ref-desc">Deliberately probed with two conflicting-note scenarios and found a genuine fail in both directions: reinforcing an existing insight silently dropped the old fact instead of merging it, and in one case the model skipped reinforcement entirely and created a second, unreconciled insight flatly contradicting the first. Tightened the prompt to make merging mechanical — a conflicting observation must always reinforce the existing insight via "usually X, but Y when Z," never sit beside it as a duplicate. Re-verified twice on both original failures (now consistently merged) plus a genuine-correction control case (correctly replaces outright instead of hedging, since "I was wrong about X" isn't the same as "usually X, but Y sometimes").</p>
         </div>
 
         <div class="ref-block">
-          <p class="ref-term">Relationship map: suggestions only <span style="color:var(--gold); font-style:normal;">— confirmed</span></p>
+          <p class="ref-term">Relationship map: suggestions only <span style="color:var(--gold); font-style:normal;">— pass</span></p>
           <p class="ref-desc">Two profiles failed to load their map during an initial accessibility-snapshot pass, and the canvas itself isn't readable as text — so this couldn't be confirmed by that method alone. Follow-up: the failed loads were traced to a burst of ~6 fresh demo workspaces being cloned in the same few seconds (an automated-testing artifact, not a map bug — confirmed by re-running the exact same insert directly against the database, which succeeded instantly once the burst had passed). Read the map-seeding code directly instead: it auto-drafts nodes and edges from existing relationship notes exactly once, the first time a person's map is opened, and never runs again for that person afterward — anything Muted notices later only ever appears in a separate suggestions panel for the user to approve. Confirmed by code, not just by clicking around.</p>
         </div>
 
