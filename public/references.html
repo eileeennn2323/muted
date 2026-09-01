@@ -688,10 +688,10 @@
       <p class="sub">Pick where you want to start.</p>
 
       <div class="hub-grid">
-        <div class="hub-card" data-goto="qa">
+        <div class="hub-card" data-goto="problem">
           <div class="hc-num">01</div>
-          <div class="hc-title">Q&amp;A</div>
-          <div class="hc-desc">Grounded answers to the questions upper management will actually ask — not meant to be recited.</div>
+          <div class="hc-title">Problem Statement</div>
+          <div class="hc-desc">The formal 6W breakdown behind everything else on this page.</div>
         </div>
         <div class="hub-card" data-goto="reference">
           <div class="hc-num">02</div>
@@ -708,10 +708,10 @@
           <div class="hc-title">Branding</div>
           <div class="hc-desc">The mark, the name, the palette and type — and why it's called Muted in the first place.</div>
         </div>
-        <div class="hub-card" data-goto="problem">
+        <div class="hub-card" data-goto="qa">
           <div class="hc-num">05</div>
-          <div class="hc-title">Problem Statement</div>
-          <div class="hc-desc">The formal 6W breakdown behind everything else on this page.</div>
+          <div class="hc-title">Q&amp;A</div>
+          <div class="hc-desc">Grounded answers to the questions upper management will actually ask — not meant to be recited.</div>
         </div>
         <div class="hub-card" data-goto="archives">
           <div class="hc-num">06</div>
@@ -1398,11 +1398,11 @@
 
         <div class="ref-block">
           <p class="ref-q">"What is the problem statement?"</p>
-          <p class="ref-a">People-knowledge from everyday work never gets captured in a form that compounds — it stays trapped in someone's head or in scattered notes. So we keep re-learning the same lessons about the same people instead of building an actual strategy for working with them.</p>
+          <p class="ref-a">Anyone working across bosses, stakeholders, peers, subordinates, or users has their observations about someone get buried in their heads or scattered on random notes, instead of turning into something practical — especially right before the next interaction, when they need to remember what that person cares about, what they'll ask, and what tends to work with them. There's no structured, intelligent way to capture what we've learnt and build on it over time, so we keep figuring the same people out again, lean on others for "intel," and go into important interactions less prepared. Full 6W breakdown on the Problem Statement page.</p>
         </div>
         <div class="ref-block">
           <p class="ref-q">"What is the impact? What is the scale of the impact?"</p>
-          <p class="ref-a">No hard number yet — that's what a pilot is for, and I'd rather say that than invent a figure. Directionally: it's a small, everyday tax on everyone managing relationships at work — redone effort, misjudged approaches, slower trust-building — that adds up at org scale, but the real number needs to come from a pilot, not a guess.</p>
+          <p class="ref-a">We size it as <strong style="color:var(--gold);">Severity: medium</strong> (going in less prepared creates friction, rework, or slower decisions — not catastrophic, but a real drag), <strong style="color:var(--gold);">Frequency: high</strong> (we interact with different people every day), and <strong style="color:var(--gold);">Reach: high</strong> (almost anyone working across bosses, stakeholders, peers, or subordinates faces this). No hard dollar figure yet — that's what a pilot is for, and I'd rather say that than invent one.</p>
         </div>
         <div class="ref-block">
           <p class="ref-q">"How do you know this is a problem worth solving?"</p>
@@ -1410,7 +1410,7 @@
         </div>
         <div class="ref-block">
           <p class="ref-q">"Why can't I just use ChatGPT?"</p>
-          <p class="ref-a">You could approximate part of this manually — a running doc, pasted in each time. Muted removes that manual work: persistent per-person memory, an evidence trail back to the source note, and automatic reconciliation when a new note supports or contradicts what's already known — none of which a plain chat does on its own.</p>
+          <p class="ref-a">You could approximate part of this manually — a running doc, pasted in each time. Muted removes that manual work: persistent per-person memory, <strong style="color:var(--cream);">structured extraction</strong> instead of freeform chat (person facts, relationships, lessons, each with a confidence level), an evidence trail with the exact quote back to the source note, and automatic reconciliation when a new note supports or contradicts what's already known — none of which a plain chat thread does on its own. See Features for the full pipeline.</p>
         </div>
         <div class="ref-block">
           <p class="ref-q">"Is this what people actually want? How do we know?"</p>
@@ -1431,7 +1431,7 @@
         </div>
         <div class="ref-block">
           <p class="ref-q">"What if the AI reinforces an unfair or biased impression of someone?"</p>
-          <p class="ref-a">That's why it's built this way: no diagnostic labels, cautious hypothesis language, a visible confidence level, and every inference traceable back to its source note. Edit or delete a note, and the insights built on it get reconsidered too.</p>
+          <p class="ref-a">That's why it's built this way: no diagnostic labels, cautious hypothesis language, a visible confidence level, and every inference traceable back to its source note. Edit or delete a note, and the insights built on it get reconsidered too. This isn't just a prompt instruction we're hoping holds — it's independently tested against the live prototype: asked directly for a firm label, Ask Muted refused outright ("Avoid: generating psychological labels"). Full audit on the Guardrails page.</p>
         </div>
         <div class="ref-block">
           <p class="ref-q">"Could writing this stuff down create legal or HR risk — like if it surfaced in a dispute later?"</p>
@@ -1451,11 +1451,20 @@
         </div>
         <div class="ref-block">
           <p class="ref-q">"Where is the data stored, who can see it, is it secure?"</p>
-          <p class="ref-a">Today it's a hackathon prototype on fictional demo data — nothing real stored yet. Real notes would need proper auth, per-user isolation, and encrypted storage first — standard groundwork not yet built.</p>
+          <p class="ref-a">Isolation already works today, not just as a future promise: each visitor gets a private workspace, walled off server-side by an opaque session identifier — no admin view, and nobody, including other judges, can read another workspace's data. What's still missing before a real rollout: a login, so a workspace is tied to a person rather than one browser. Clear your cookies or switch devices today and you land in a fresh, empty workspace — that's the real gap, not the isolation itself.</p>
         </div>
         <div class="ref-block">
           <p class="ref-q">"Does the relationship map show real reporting lines, or is the AI just guessing at people's relationships?"</p>
-          <p class="ref-a">It's grounded the same way everything else is — drafted from relationships you've already described in your notes, not invented. Anything Muted notices that isn't confirmed yet shows up as a suggestion with a one-click approve, never added to the map silently.</p>
+          <p class="ref-a">It's grounded the same way everything else is — drafted from relationships you've already described in your notes, not invented. Anything Muted notices that isn't confirmed yet shows up as a suggestion with a one-click approve, never added to the map silently. Verified directly in the code, not just assumed: the map only ever auto-drafts once, the very first time you open it — it never runs again after that, so nothing gets added behind your back later either.</p>
+        </div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">On the name</div>
+
+        <div class="ref-block">
+          <p class="ref-q">"Why is it called 'Muted'?"</p>
+          <p class="ref-a">Muted, not silenced — the name is a stance: what you notice about people at work stays private and quiet unless you choose to use it. It also nods to those moments you feel stuck or unsure what to say, which is exactly when the tool is most useful. There's a wordplay on "木头" (wood/woodblock) baked in too, and the logo's "t" is literally 木 (tree), shaped like a person. Full story on the Branding page.</p>
         </div>
       </div>
     </div>
