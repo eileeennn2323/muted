@@ -1476,6 +1476,15 @@
           </ul>
           <p class="ref-a">So: MVP for validating the idea — yes, convincingly. MVP for handing to real coworkers this week — not quite; <strong style="color:var(--gold);">the login/identity gap is the first thing to fix.</strong></p>
         </div>
+        <div class="ref-block">
+          <p class="ref-q">"What's the difference between following the README on GitHub vs. just using the forge-muted.vercel.app link?"</p>
+          <p class="ref-a"><strong style="color:var(--cream);">Two different things: the README sets up your own separate copy; the Vercel link uses the one already running.</strong></p>
+          <ul class="ref-desc" style="margin-top:8px; margin-bottom:10px;">
+            <li><strong style="color:var(--cream);">README.md</strong> — clone the repo, create your own Supabase project, run all 7 migrations, add your own API keys, run it locally. You get a completely empty, isolated database — no demo data until you seed it yourself. For developing or modifying the code.</li>
+            <li><strong style="color:var(--cream);">forge-muted.vercel.app</strong> — zero setup, just open the URL. Uses the one real, already-configured Supabase project and Gemini key — the actual deployed app, always in sync with the latest code. For anyone who just wants to use the finished product.</li>
+          </ul>
+          <p class="ref-a">Both isolate each visitor into their own private workspace — the difference is whether that workspace lives in your own private database or the shared production one.</p>
+        </div>
       </div>
 
       <div class="ref-section">
