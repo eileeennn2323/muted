@@ -11,7 +11,7 @@ export default function HomePage() {
         Learn · Predict · Strategise
       </p>
       <p className="mt-2 max-w-lg text-cocoa-soft">
-        Write what you notice — Muted turns it into a playbook: what they care about,
+        Write what you notice — Muted turns it into a living profile: what they care about,
         how to work with them, what to expect next time.
       </p>
 
