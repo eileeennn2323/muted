@@ -1,6 +1,6 @@
 # Muted
 
-A private AI-powered relationship intelligence assistant for people at work.
+A private AI relationship assistant that turns your observations and thoughts about people into practical guidance for navigating relationship dynamics at work.
 See `masterplan.md` for the full product spec.
 
 ## Stack
