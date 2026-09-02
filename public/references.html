@@ -1466,24 +1466,24 @@
         </div>
         <div class="ref-block">
           <p class="ref-q">"Is this an MVP?"</p>
-          <p class="ref-a">Yes, in the sense that matters most — <strong style="color:var(--cream);">the core value loop is real and working, not mocked</strong>: Capture → structured extraction → person playbook → Ask Muted → Lessons → relationship map, hitting Gemini and Postgres for real, not a clickable mockup. The guardrails have been tested against the live prototype, not just written into a prompt, and data isolation between users already works today.</p>
+          <p class="ref-a">Yes, in the sense that matters most. <strong style="color:var(--cream);">The core value loop is real and working, not mocked.</strong> Capture → structured extraction → person playbook → Ask Muted → Lessons → relationship map, and it actually runs on Gemini and Postgres. It's not a clickable mockup. The guardrails have been tested against the live prototype too, not just written into a prompt, and data isolation between users already works today.</p>
           <p class="ref-a" style="margin-top:12px;">What's still missing for a real pilot, not just a demo:</p>
           <ul class="ref-desc" style="margin-top:8px; margin-bottom:10px;">
-            <li><strong style="color:var(--cream);">No login</strong> — identity is a browser cookie, so switching devices or clearing cookies loses everything.</li>
-            <li>Every new workspace <strong style="color:var(--cream);">auto-seeds fictional demo people</strong> — correct for judges, wrong for a real user.</li>
+            <li><strong style="color:var(--cream);">No login.</strong> Identity is a browser cookie, so switching devices or clearing cookies loses everything.</li>
+            <li>Every new workspace <strong style="color:var(--cream);">automatically fills in fictional demo people.</strong> That's fine for a judge trying the demo, but it would confuse a real user, who'd expect to see their own real colleagues, not made-up ones.</li>
             <li><strong style="color:var(--cream);">Mock auth</strong> (PIN/face-unlock) is a presentation device, not real security.</li>
             <li>The 30/day rate limit is a demo-safety measure, not a real usage cap.</li>
           </ul>
-          <p class="ref-a">So: MVP for validating the idea — yes, convincingly. MVP for handing to real coworkers this week — not quite; <strong style="color:var(--gold);">the login/identity gap is the first thing to fix.</strong></p>
+          <p class="ref-a">So this is a strong MVP for validating the idea. It's not quite ready to hand to real coworkers this week. <strong style="color:var(--gold);">The login/identity gap is the first thing to fix.</strong></p>
         </div>
         <div class="ref-block">
           <p class="ref-q">"What's the difference between following the README on GitHub vs. just using the forge-muted.vercel.app link?"</p>
-          <p class="ref-a"><strong style="color:var(--cream);">Two different things: the README sets up your own separate copy; the Vercel link uses the one already running.</strong></p>
+          <p class="ref-a"><strong style="color:var(--cream);">They're two different things. The README sets up your own separate copy. The Vercel link just uses the one that's already running.</strong></p>
           <ul class="ref-desc" style="margin-top:8px; margin-bottom:10px;">
-            <li><strong style="color:var(--cream);">README.md</strong> — clone the repo, create your own Supabase project, run all 7 migrations, add your own API keys, run it locally. You get a completely empty, isolated database — no demo data until you seed it yourself. For developing or modifying the code.</li>
-            <li><strong style="color:var(--cream);">forge-muted.vercel.app</strong> — zero setup, just open the URL. Uses the one real, already-configured Supabase project and Gemini key — the actual deployed app, always in sync with the latest code. For anyone who just wants to use the finished product.</li>
+            <li><strong style="color:var(--cream);">README.md:</strong> clone the repo, create your own Supabase project, run all 7 migrations, and add your own API keys, then run it locally. You get a completely empty, isolated database, with no demo data until you seed it yourself. This is for developing or modifying the code.</li>
+            <li><strong style="color:var(--cream);">forge-muted.vercel.app:</strong> zero setup, just open the link. It uses the one real, already-configured Supabase project and Gemini key. This is the actual deployed app, always kept in sync with the latest code, for anyone who just wants to use the finished product.</li>
           </ul>
-          <p class="ref-a">Both isolate each visitor into their own private workspace — the difference is whether that workspace lives in your own private database or the shared production one.</p>
+          <p class="ref-a">Both isolate each visitor into their own private workspace. The only difference is whether that workspace lives in your own private database, or the shared production one.</p>
         </div>
       </div>
 
