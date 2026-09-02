@@ -1464,6 +1464,18 @@
           </ul>
           <p class="ref-a">We can't put a validated number on the outcome metric yet — that's the pilot's job — but the value metric is something we can start moving, and watching, from week one.</p>
         </div>
+        <div class="ref-block">
+          <p class="ref-q">"Is this an MVP?"</p>
+          <p class="ref-a">Yes, in the sense that matters most — <strong style="color:var(--cream);">the core value loop is real and working, not mocked</strong>: Capture → structured extraction → person playbook → Ask Muted → Lessons → relationship map, hitting Gemini and Postgres for real, not a clickable mockup. The guardrails have been tested against the live prototype, not just written into a prompt, and data isolation between users already works today.</p>
+          <p class="ref-a" style="margin-top:12px;">What's still missing for a real pilot, not just a demo:</p>
+          <ul class="ref-desc" style="margin-top:8px; margin-bottom:10px;">
+            <li><strong style="color:var(--cream);">No login</strong> — identity is a browser cookie, so switching devices or clearing cookies loses everything.</li>
+            <li>Every new workspace <strong style="color:var(--cream);">auto-seeds fictional demo people</strong> — correct for judges, wrong for a real user.</li>
+            <li><strong style="color:var(--cream);">Mock auth</strong> (PIN/face-unlock) is a presentation device, not real security.</li>
+            <li>The 30/day rate limit is a demo-safety measure, not a real usage cap.</li>
+          </ul>
+          <p class="ref-a">So: MVP for validating the idea — yes, convincingly. MVP for handing to real coworkers this week — not quite; <strong style="color:var(--gold);">the login/identity gap is the first thing to fix.</strong></p>
+        </div>
       </div>
 
       <div class="ref-section">
