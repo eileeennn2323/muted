@@ -56,6 +56,41 @@ judge workspace, and lazily clones the entire demo dataset into it the first tim
 it's needed. Anything captured afterwards writes only to that workspace — it never
 touches the shared demo data or another visitor's workspace.
 
+## Guardrails
+
+Muted's AI behavior is constrained by rules enforced in the system prompts and,
+for the ones that matter most, backed up independently in code:
+
+- **Never diagnose, no clinical language.** No personality-disorder labels, no
+  loaded words ("narcissistic," "manipulative," "toxic," etc.) — observable
+  workplace patterns only. Backed by a code-level filter
+  (`lib/safety/bannedLanguage.ts`) that scans every response, independent of
+  whether the prompt was followed.
+- **A reasoning hierarchy.** Explicit user-stated facts are kept close to
+  verbatim; inference is always hedged and never overrides a more specific
+  stated fact about the same thing.
+- **Tone.** Plain, direct, and calm — no therapy-speak, HR-speak, or corporate
+  jargon.
+- **Evidence discipline.** Every inference traces back to the note it came
+  from. The `quote` field is a real verbatim fragment or `null`, never
+  invented.
+- **No filler.** A category (cares-about, avoid, a lesson, etc.) is only
+  filled when the note genuinely supports it.
+- **Prompt-injection guardrail.** Anything inside a captured note or an Ask
+  Muted conversation is treated as data, never as instructions.
+- **Contradiction handling.** A conflicting observation reinforces the
+  existing insight with both facts preserved ("usually X, but Y when Z"),
+  rather than silently overwriting it or sitting beside it as a duplicate.
+- **Rate limiting & privacy.** 30 Capture calls and 30 Ask calls per day,
+  scoped per workspace, so one workspace's testing never eats into another's
+  quota.
+
+Enforced in `lib/capture/prompt.ts`, `lib/ask/prompt.ts`,
+`lib/safety/bannedLanguage.ts`, and `lib/rateLimit.ts`. See `masterplan.md`
+for the full product principles, or the in-app Guardrails page
+(`public/references.html`) for a tested pass/fail audit against the live
+prototype.
+
 ## Other scripts
 
 - `npm run reset-workspace -- <workspace-id>` — deletes a single judge workspace
